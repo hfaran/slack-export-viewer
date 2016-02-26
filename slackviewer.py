@@ -54,6 +54,8 @@ class Message(object):
         message = re.sub(r"<@U0\w+>", self._mention, message)
         # Handle "<url>"
         message = re.sub(r"<http(s|)://.*>", self._url, message)
+        # Handle hashtags (that are meant to be hashtags and not headings)
+        message = re.sub(r"^#\S+", self._hashtag, message)
 
         message = markdown2.markdown(message, extras=["cuddled-lists"]).strip()
         # markdown2 likes to wrap everything in <p> tags
@@ -82,9 +84,16 @@ class Message(object):
         return "@{}".format((matchobj.group(0)[2:-1]).split("|")[1])
 
     def _url(self, matchobj):
-        url = matchobj.group(0)[1:-1]
-        # return "<a href='{url}'>{url}</a>".format(url=url)
-        return "[{url}]({url})".format(url=url)
+        compound = matchobj.group(0)[1:-1]
+        if len(compound.split("|")) == 2:
+            url, title = compound.split("|")
+        else:
+            url, title = compound, compound
+        return "[{title}]({url})".format(url=url, title=title)
+
+    def _hashtag(self, matchobj):
+        text = matchobj.group(0)
+        return "_{}_".format(text)
 
 def compile_channels(path, users):
     channels = [d for d in os.listdir(path)
