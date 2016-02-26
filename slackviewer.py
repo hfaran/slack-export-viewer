@@ -8,6 +8,7 @@ import re
 import click
 import flask
 import markdown2
+import emoji
 
 
 app = flask.Flask(__name__)
@@ -84,6 +85,9 @@ class Message(object):
         # markdown2 likes to wrap everything in <p> tags
         if message.startswith("<p>") and message.endswith("</p>"):
             message = message[3:-4]
+
+        # Introduce unicode emoji
+        message = emoji.emojize(message, use_aliases=True)
 
         return message
 
