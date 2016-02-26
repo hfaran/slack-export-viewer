@@ -14,8 +14,9 @@ app = flask.Flask(__name__)
 
 
 class Message(object):
-    def __init__(self, USER_DATA, message):
+    def __init__(self, USER_DATA, CHANNEL_DATA, message):
         self.__USER_DATA = USER_DATA
+        self.__CHANNEL_DATA = CHANNEL_DATA
         self._message = message
 
     ##############
@@ -52,10 +53,12 @@ class Message(object):
                          self._annotated_mention, message)
         # Handle "<@U0BM1CGQY>"
         message = re.sub(r"<@U0\w+>", self._mention, message)
-        # Handle "<url>"
+        # Handle "<http(s|)://...>"
         message = re.sub(r"<http(s|)://.*>", self._url, message)
         # Handle hashtags (that are meant to be hashtags and not headings)
         message = re.sub(r"^#\S+", self._hashtag, message)
+        # Handle channel references
+        message = re.sub(r"<#C0\w+>", self._channel_ref, message)
 
         message = markdown2.markdown(message, extras=["cuddled-lists"]).strip()
         # markdown2 likes to wrap everything in <p> tags
@@ -95,7 +98,13 @@ class Message(object):
         text = matchobj.group(0)
         return "_{}_".format(text)
 
-def compile_channels(path, users):
+    def _channel_ref(self, matchobj):
+        channel_id = matchobj.group(0)[2:-1]
+        channel_name = self.__CHANNEL_DATA[channel_id]["name"]
+        return "_#{}_".format(channel_name)
+
+
+def compile_channels(path, user_data, channel_data):
     channels = [d for d in os.listdir(path)
                 if os.path.isdir(os.path.join(path, d))]
     chats = {}
@@ -105,13 +114,19 @@ def compile_channels(path, users):
         for day in os.listdir(channel_dir_path):
             with open(os.path.join(channel_dir_path, day)) as f:
                 day_messages = json.load(f)
-                messages.extend([Message(users, d) for d in day_messages])
+                messages.extend([Message(user_data, channel_data, d) for d in
+                                 day_messages])
         chats[channel] = messages
     return chats
 
 
 def get_users(path):
     with open(os.path.join(path, "users.json")) as f:
+        return {u["id"]: u for u in json.load(f)}
+
+
+def get_channels(path):
+    with open(os.path.join(path, "channels.json")) as f:
         return {u["id"]: u for u in json.load(f)}
 
 
@@ -126,8 +141,9 @@ def channel_name(name):
 @click.option("-d", "--dir", required=True)
 @click.option("-p", "--port", default=5000, type=click.INT)
 def main(dir, port):
-    users = get_users(dir)
-    channels = compile_channels(dir, users=users)
+    user_data = get_users(dir)
+    channel_data = get_channels(dir)
+    channels = compile_channels(dir, user_data, channel_data)
 
     top = flask._app_ctx_stack
     top.channels = channels
