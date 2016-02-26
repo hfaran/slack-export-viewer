@@ -2,14 +2,23 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>{{ title }}</title>
+    <title>#{{ name }}</title>
     <link rel=stylesheet type=text/css href="../static/viewer.css">
 </head>
 <body>
 <div id="fixed">
     <h3>Channels</h3>
     {% for channel in channels %}
-    <a href="/channel/{{ channel }}">#{{ channel }}</a><br />
+        {% if channel == name %}
+        <a href="/channel/{{ channel }}">
+            <span style="background-color: #ab9ba9">
+                #{{ channel }}
+            </span>
+        </a>
+        {% else %}
+        <a href="/channel/{{ channel }}">#{{ channel }}</a>
+        {% endif %}
+        <br />
     {% endfor %}
 </div>
 <div class="messages" id="fluid">

@@ -181,7 +181,7 @@ def channel_name(name):
     messages = flask._app_ctx_stack.channels[name]
     channels = flask._app_ctx_stack.channels.keys()
     return flask.render_template("viewer.html", messages=messages,
-                                 title="#{name}".format(name=name),
+                                 name=name.format(name=name),
                                  channels=sorted(channels))
 
 

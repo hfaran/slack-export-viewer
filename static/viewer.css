@@ -17,16 +17,8 @@ body {
     background-color: #4D394B;
 }
 
-#fixed a:link {
+#fixed a {
     color: antiquewhite;
-}
-
-#fixed a:visited {
-    color: antiquewhite;
-}
-
-#fixed a:focus {
-    color: white;
 }
 
 #fixed h3 {
