@@ -1,20 +1,8 @@
-#!/usr/bin/env python3
-
-import os
-import json
 import datetime
 import re
-import hashlib
-import zipfile
-import logging
 
-import click
-import flask
-import markdown2
 import emoji
-
-
-app = flask.Flask(__name__)
+import markdown2
 
 
 class Message(object):
@@ -157,107 +145,3 @@ class Message(object):
 
     def _sub_bold(self, matchobj):
         return self.__em_strong(matchobj, "strong")
-
-
-def compile_channels(path, user_data, channel_data):
-    channels = [d for d in os.listdir(path)
-                if os.path.isdir(os.path.join(path, d))]
-    chats = {}
-    for channel in channels:
-        channel_dir_path = os.path.join(path, channel)
-        messages = []
-        for day in os.listdir(channel_dir_path):
-            with open(os.path.join(channel_dir_path, day)) as f:
-                day_messages = json.load(f)
-                messages.extend([Message(user_data, channel_data, d) for d in
-                                 day_messages])
-        chats[channel] = messages
-    return chats
-
-
-def get_users(path):
-    with open(os.path.join(path, "users.json")) as f:
-        return {u["id"]: u for u in json.load(f)}
-
-
-def get_channels(path):
-    with open(os.path.join(path, "channels.json")) as f:
-        return {u["id"]: u for u in json.load(f)}
-
-
-@app.route("/channel/<name>")
-def channel_name(name):
-    messages = flask._app_ctx_stack.channels[name]
-    channels = flask._app_ctx_stack.channels.keys()
-    return flask.render_template("viewer.html", messages=messages,
-                                 name=name.format(name=name),
-                                 channels=sorted(channels))
-
-@app.route("/")
-def index():
-    channels = flask._app_ctx_stack.channels.keys()
-    if "general" in channels:
-        return channel_name("general")
-    else:
-        return channel_name(channels[0])
-
-
-def SHA1_file(filepath):
-    with open(filepath, 'rb') as f:
-        return hashlib.sha1(f.read()).hexdigest()
-
-
-def extract_archive(filepath):
-    if not zipfile.is_zipfile(filepath):
-        # Misuse of TypeError? :P
-        raise TypeError("{} is not a zipfile".format(filepath))
-
-    archive_sha = SHA1_file(filepath)
-    extracted_path = os.path.join("/tmp", "_slackviewer", archive_sha)
-    if os.path.exists(extracted_path):
-        print("{} already exists".format(extracted_path))
-    else:
-        # Extract zip
-        with zipfile.ZipFile(filepath) as zip:
-            print("{} extracting to {}...".format(
-                filepath,
-                extracted_path))
-            zip.extractall(path=extracted_path)
-        print("{} extracted to {}.".format(filepath, extracted_path))
-        # Add additional file with archive info
-        archive_info = {
-            "sha1": archive_sha,
-            "filename": os.path.split(filepath)[1]
-        }
-        with open(
-            os.path.join(
-                extracted_path,
-                ".slackviewer_archive_info.json"
-            ), 'w+'
-        ) as f:
-            json.dump(archive_info, f)
-
-    return extracted_path
-
-
-@click.command()
-@click.option("-p", "--port", default=5000, type=click.INT)
-@click.option("-z", "--archive", type=click.Path(), required=True)
-def main(port, archive):
-    path = extract_archive(archive)
-    user_data = get_users(path)
-    channel_data = get_channels(path)
-    channels = compile_channels(path, user_data, channel_data)
-
-    top = flask._app_ctx_stack
-    top.channels = channels
-
-    app.debug = True
-    app.run(
-        host='0.0.0.0',
-        port=port
-    )
-
-
-if __name__ == '__main__':
-    main()

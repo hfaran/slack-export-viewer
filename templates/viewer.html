@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <title>#{{ name }}</title>
-    <link rel=stylesheet type=text/css href="../static/viewer.css">
+    <link rel=stylesheet type=text/css
+          href="{{ url_for('static', filename='viewer.css') }}">
 </head>
 <body>
 <div id="fixed">
