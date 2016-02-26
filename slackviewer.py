@@ -56,6 +56,8 @@ class Message(object):
         message = re.sub(r"<@U0\w+>", self._mention, message)
         # Handle "<http(s|)://...>"
         message = re.sub(r"<http(s|)://.*>", self._url, message)
+        # Handle "<mailto:...|...>"
+        message = re.sub(r"<mailto:.*>", self._url, message)
         # Handle hashtags (that are meant to be hashtags and not headings)
         message = re.sub(r"^#\S+", self._hashtag, message)
         # Handle channel references
