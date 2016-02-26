@@ -28,11 +28,15 @@ class Message(object):
 
     @property
     def username(self):
-        if "user" in self._message:
+        try:
             return self.__USER_DATA[self._message["user"]]["name"]
-        else:
+        except KeyError:
             # In case this is a bot or something, we fallback to "username"
-            return self._message["username"]
+            if"username" in self._message:
+                return self._message["username"]
+            # If that fails to, it's probably USLACKBOT...
+            else:
+                return self._message["user"]
 
     @property
     def time(self):
@@ -60,7 +64,10 @@ class Message(object):
 
     @property
     def img(self):
-        return self.__USER_DATA[self._message["user"]]["profile"]["image_72"]
+        try:
+            return self.__USER_DATA[self._message["user"]]["profile"]["image_72"]
+        except KeyError:
+            return ""
 
     ###################
     # Private Methods #
@@ -99,11 +106,11 @@ def get_users(path):
         return {u["id"]: u for u in json.load(f)}
 
 
-@app.route("/elections")
-def elections():
-    messages = flask._app_ctx_stack.channels["elections"]
+@app.route("/channel/<name>")
+def channel_name(name):
+    messages = flask._app_ctx_stack.channels[name]
     return flask.render_template("archive.html", messages=messages,
-                                 title="#elections")
+                                 title="#{name}".format(name=name))
 
 
 @click.command()
