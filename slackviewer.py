@@ -184,6 +184,13 @@ def channel_name(name):
                                  name=name.format(name=name),
                                  channels=sorted(channels))
 
+@app.route("/")
+def index():
+    channels = flask._app_ctx_stack.channels.keys()
+    if "general" in channels:
+        return channel_name("general")
+    else:
+        return channel_name(channels[0])
 
 @click.command()
 @click.option("-d", "--dir", required=True)
