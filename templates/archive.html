@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>{{ title }}</title>
     <link rel=stylesheet type=text/css href="../static/archive.css">
 </head>
 <body>
@@ -13,7 +13,7 @@
         <div class="message">
             <div class="username">{{ message.username }}</div>
             <div class="time">{{ message.time }}</div>
-            <div class="msg">{{ message.msg }}</div>
+            <div class="msg">{{ message.msg|safe }}</div>
         </div>
     </div>
     <br/>

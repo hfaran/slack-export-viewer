@@ -17,23 +17,25 @@ class Message(object):
         self.__USER_DATA = USER_DATA
         self._message = message
 
-    @property
-    def type(self):
-        return self._message["type"]
-
-    @property
-    def username(self):
-        if "user" in self._message:
-            return self.__USER_DATA[self._message["user"]]["name"]
-        else:
-            return self._message["username"]
+    ##############
+    # Properties #
+    ##############
 
     @property
     def user_id(self):
         return self._message["user"]
 
     @property
+    def username(self):
+        if "user" in self._message:
+            return self.__USER_DATA[self._message["user"]]["name"]
+        else:
+            # In case this is a bot or something, we fallback to "username"
+            return self._message["username"]
+
+    @property
     def time(self):
+        # Handle this: "ts": "1456427378.000002"
         tsepoch = float(self._message["ts"].split(".")[0])
         return str(datetime.datetime.fromtimestamp(tsepoch)).split('.')[0]
 
@@ -42,22 +44,32 @@ class Message(object):
         message = self._message["text"]
         # Handle "<@U0BM1CGQY|calvinchanubc> has joined the channel"
         message = re.sub(r"<@U0\w+\|[A-Za-z0-9.-_]+>",
-                         self.annotated_mention, message)
+                         self._annotated_mention, message)
         # Handle "<@U0BM1CGQY>"
-        message = re.sub(r"<@U0\w+>", self.mention, message)
+        message = re.sub(r"<@U0\w+>", self._mention, message)
+        # Handle "<url>"
+        message = re.sub(r"<http(s|)://.*>", self._url, message)
         return message
 
     @property
     def img(self):
         return self.__USER_DATA[self._message["user"]]["profile"]["image_72"]
 
-    def mention(self, matchobj):
+    ###################
+    # Private Methods #
+    ###################
+
+    def _mention(self, matchobj):
         return "@{}".format(
             self.__USER_DATA[matchobj.group(0)[2:-1]]["name"]
         )
 
-    def annotated_mention(self, matchobj):
+    def _annotated_mention(self, matchobj):
         return "@{}".format((matchobj.group(0)[2:-1]).split("|")[1])
+
+    def _url(self, matchobj):
+        url = matchobj.group(0)[1:-1]
+        return "<a href='{url}'>{url}</a>".format(url=url)
 
 def compile_channels(path, users):
     channels = [d for d in os.listdir(path)
@@ -70,17 +82,17 @@ def compile_channels(path, users):
             with open(os.path.join(channel_dir_path, day)) as f:
                 day_messages = json.load(f)
 
-                # messages.extend([Message(users, d) for d in day_messages])
+                messages.extend([Message(users, d) for d in day_messages])
 
-                ms = []
-                for d in day_messages:
-                    try:
-                        m = Message(users, d)
-                    except:
-                        print(d)
-                        raise
-                    ms.append(m)
-                messages.extend(ms)
+                # ms = []
+                # for d in day_messages:
+                #     try:
+                #         m = Message(users, d)
+                #     except:
+                #         print(d)
+                #         raise
+                #     ms.append(m)
+                # messages.extend(ms)
 
         chats[channel] = messages
     return chats
@@ -94,7 +106,8 @@ def get_users(path):
 @app.route("/elections")
 def elections():
     messages = flask._app_ctx_stack.channels["elections"]
-    return flask.render_template("archive.html", messages=messages)
+    return flask.render_template("archive.html", messages=messages,
+                                 title="#elections")
 
 
 @click.command()
