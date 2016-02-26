@@ -1,0 +1,41 @@
+* {
+    font-family:sans-serif;
+}
+body {
+    text-align:center;
+    padding:1em;
+}
+.messages {
+    width:100%;
+    max-width:700px;
+    text-align:left;
+    display:inline-block;
+}
+.messages img {
+    background-color:rgb(248,244,240);
+    width:36px;
+    height:36px;
+    border-radius:0.2em;
+    display:inline-block;
+    vertical-align:top;
+    margin-right:0.65em;
+}
+.messages .time {
+    display:inline-block;
+    color:rgb(200,200,200);
+    margin-left:0.5em;
+}
+.messages .username {
+    display:inline-block;
+    font-weight:600;
+    line-height:1;
+}
+.messages .message {
+    display:inline-block;
+    vertical-align:top;
+    line-height:1;
+    width:calc(100% - 3em);
+}
+.messages .message .msg {
+    line-height:1.5;
+}
