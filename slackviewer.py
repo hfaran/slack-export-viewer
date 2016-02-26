@@ -50,25 +50,26 @@ class Message(object):
     def msg(self):
         message = self._message["text"]
         message = message.replace("<!channel>", "@channel")
+        message = self._slack_to_accepted_emoji(message)
         # Handle "<@U0BM1CGQY|calvinchanubc> has joined the channel"
         message = re.sub(r"<@U0\w+\|[A-Za-z0-9.-_]+>",
-                         self._annotated_mention, message)
+                         self._sub_annotated_mention, message)
         # Handle "<@U0BM1CGQY>"
-        message = re.sub(r"<@U0\w+>", self._mention, message)
+        message = re.sub(r"<@U0\w+>", self._sub_mention, message)
         # Handle "<http(s|)://...>"
-        message = re.sub(r"<http(s|)://.*>", self._url, message)
+        message = re.sub(r"<http(s|)://.*>", self._sub_hyperlink, message)
         # Handle "<mailto:...|...>"
-        message = re.sub(r"<mailto:.*>", self._url, message)
+        message = re.sub(r"<mailto:.*>", self._sub_hyperlink, message)
         # Handle hashtags (that are meant to be hashtags and not headings)
-        message = re.sub(r"^#\S+", self._hashtag, message)
+        message = re.sub(r"^#\S+", self._sub_hashtag, message)
         # Handle channel references
-        message = re.sub(r"<#C0\w+>", self._channel_ref, message)
+        message = re.sub(r"<#C0\w+>", self._sub_channel_ref, message)
         # Handle italics (convert * * to ** **)
         message = re.sub(r"(^| )\*[A-Za-z0-9\-._ ]+\*( |$)",
-                         self._bold, message)
+                         self._sub_bold, message)
         # Handle italics (convert _ _ to * *)
         message = re.sub(r"(^| )_[A-Za-z0-9\-._ ]+_( |$)",
-                         self._italics, message)
+                         self._sub_italics, message)
 
         message = markdown2.markdown(
             message,
@@ -102,15 +103,20 @@ class Message(object):
     # Private Methods #
     ###################
 
-    def _mention(self, matchobj):
+    def _slack_to_accepted_emoji(self, message):
+        # https://github.com/Ranks/emojione/issues/114
+        message = message.replace(":simple_smile:", ":slightly_smiling_face:")
+        return message
+
+    def _sub_mention(self, matchobj):
         return "@{}".format(
             self.__USER_DATA[matchobj.group(0)[2:-1]]["name"]
         )
 
-    def _annotated_mention(self, matchobj):
+    def _sub_annotated_mention(self, matchobj):
         return "@{}".format((matchobj.group(0)[2:-1]).split("|")[1])
 
-    def _url(self, matchobj):
+    def _sub_hyperlink(self, matchobj):
         compound = matchobj.group(0)[1:-1]
         if len(compound.split("|")) == 2:
             url, title = compound.split("|")
@@ -118,11 +124,11 @@ class Message(object):
             url, title = compound, compound
         return "[{title}]({url})".format(url=url, title=title)
 
-    def _hashtag(self, matchobj):
+    def _sub_hashtag(self, matchobj):
         text = matchobj.group(0)
         return "*{}*".format(text)
 
-    def _channel_ref(self, matchobj):
+    def _sub_channel_ref(self, matchobj):
         channel_id = matchobj.group(0)[2:-1]
         channel_name = self.__CHANNEL_DATA[channel_id]["name"]
         return "*#{}*".format(channel_name)
@@ -143,10 +149,10 @@ class Message(object):
             ending_space
         )
 
-    def _italics(self, matchobj):
+    def _sub_italics(self, matchobj):
         return self.__em_strong(matchobj, "em")
 
-    def _bold(self, matchobj):
+    def _sub_bold(self, matchobj):
         return self.__em_strong(matchobj, "strong")
 
 
