@@ -7,6 +7,7 @@ import re
 
 import click
 import flask
+import markdown2
 
 
 app = flask.Flask(__name__)
@@ -49,6 +50,12 @@ class Message(object):
         message = re.sub(r"<@U0\w+>", self._mention, message)
         # Handle "<url>"
         message = re.sub(r"<http(s|)://.*>", self._url, message)
+
+        message = markdown2.markdown(message, extras=["cuddled-lists"]).strip()
+        # markdown2 likes to wrap everything in <p> tags
+        if message.startswith("<p>") and message.endswith("</p>"):
+            message = message[3:-4]
+
         return message
 
     @property
@@ -69,7 +76,8 @@ class Message(object):
 
     def _url(self, matchobj):
         url = matchobj.group(0)[1:-1]
-        return "<a href='{url}'>{url}</a>".format(url=url)
+        # return "<a href='{url}'>{url}</a>".format(url=url)
+        return "[{url}]({url})".format(url=url)
 
 def compile_channels(path, users):
     channels = [d for d in os.listdir(path)
@@ -81,19 +89,7 @@ def compile_channels(path, users):
         for day in os.listdir(channel_dir_path):
             with open(os.path.join(channel_dir_path, day)) as f:
                 day_messages = json.load(f)
-
                 messages.extend([Message(users, d) for d in day_messages])
-
-                # ms = []
-                # for d in day_messages:
-                #     try:
-                #         m = Message(users, d)
-                #     except:
-                #         print(d)
-                #         raise
-                #     ms.append(m)
-                # messages.extend(ms)
-
         chats[channel] = messages
     return chats
 
