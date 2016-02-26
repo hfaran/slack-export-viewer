@@ -37,7 +37,7 @@ class Message(object):
                 return self._message["username"]
             # If that fails to, it's probably USLACKBOT...
             else:
-                return self._message["user"]
+                return self.user_id
 
     @property
     def time(self):
@@ -59,8 +59,25 @@ class Message(object):
         message = re.sub(r"^#\S+", self._hashtag, message)
         # Handle channel references
         message = re.sub(r"<#C0\w+>", self._channel_ref, message)
+        # Handle italics (convert * * to ** **)
+        message = re.sub(r"(^| )\*[A-Za-z0-9\-._ ]+\*( |$)",
+                         self._bold, message)
+        # Handle italics (convert _ _ to * *)
+        message = re.sub(r"(^| )_[A-Za-z0-9\-._ ]+_( |$)",
+                         self._italics, message)
 
-        message = markdown2.markdown(message, extras=["cuddled-lists"]).strip()
+        message = markdown2.markdown(
+            message,
+            extras=[
+                "cuddled-lists",
+                # Disable parsing _ and __ for em and strong
+                # This prevents breaking of emoji codes like :stuck_out_tongue
+                #  for which the underscores it liked to mangle.
+                # We still have nice bold and italics formatting though
+                #  because we pre-process underscores into asterisks. :)
+                "code-friendly"
+            ]
+        ).strip()
         # markdown2 likes to wrap everything in <p> tags
         if message.startswith("<p>") and message.endswith("</p>"):
             message = message[3:-4]
@@ -96,12 +113,34 @@ class Message(object):
 
     def _hashtag(self, matchobj):
         text = matchobj.group(0)
-        return "_{}_".format(text)
+        return "*{}*".format(text)
 
     def _channel_ref(self, matchobj):
         channel_id = matchobj.group(0)[2:-1]
         channel_name = self.__CHANNEL_DATA[channel_id]["name"]
-        return "_#{}_".format(channel_name)
+        return "*#{}*".format(channel_name)
+
+    def __em_strong(self, matchobj, format="em"):
+        if format not in ("em", "strong"):
+            raise ValueError
+        chars = "*" if format == "em" else "**"
+
+        text = matchobj.group(0)
+        starting_space = " " if text[0] == " " else ""
+        ending_space = " " if text[-1] == " " else ""
+        return "{}{}{}{}{}".format(
+            starting_space,
+            chars,
+            matchobj.group(0).strip()[1:-1],
+            chars,
+            ending_space
+        )
+
+    def _italics(self, matchobj):
+        return self.__em_strong(matchobj, "em")
+
+    def _bold(self, matchobj):
+        return self.__em_strong(matchobj, "strong")
 
 
 def compile_channels(path, user_data, channel_data):
