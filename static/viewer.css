@@ -12,9 +12,13 @@ body {
     top: 0;
     bottom: 0;
     left: 0;
-    width: 200px;
-    text-align: center;
+    padding-left: 2vw;
+    padding-right: 2vw;
+    text-align: left;
     background-color: #4D394B;
+    z-index: 10;
+    overflow-y: scroll;
+    overflow-x: auto;
 }
 
 #fixed a {
@@ -27,14 +31,19 @@ body {
 
 #fluid {
     position: relative;
-    overflow: hidden;
+    z-index: 1;
 }
 
 .messages {
     width: 100%;
-    max-width: 700px;
+    max-width: 70vw;
     text-align: left;
     display: inline-block;
+    /* For some reason, this pads from the left of the screen
+    as opposed to the right of the #fixed div, so we have a decent-ish 25vw
+    padding to cover most screens
+    XXX Still a hack though */
+    padding-left: 25vw;
 }
 
 .messages img {
