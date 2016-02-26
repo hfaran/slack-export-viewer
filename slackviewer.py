@@ -4,6 +4,9 @@ import os
 import json
 import datetime
 import re
+import hashlib
+import zipfile
+import logging
 
 import click
 import flask
@@ -198,13 +201,53 @@ def index():
     else:
         return channel_name(channels[0])
 
+
+def SHA1_file(filepath):
+    with open(filepath, 'rb') as f:
+        return hashlib.sha1(f.read()).hexdigest()
+
+
+def extract_archive(filepath):
+    if not zipfile.is_zipfile(filepath):
+        # Misuse of TypeError? :P
+        raise TypeError("{} is not a zipfile".format(filepath))
+
+    archive_sha = SHA1_file(filepath)
+    extracted_path = os.path.join("/tmp", "_slackviewer", archive_sha)
+    if os.path.exists(extracted_path):
+        print("{} already exists".format(extracted_path))
+    else:
+        # Extract zip
+        with zipfile.ZipFile(filepath) as zip:
+            print("{} extracting to {}...".format(
+                filepath,
+                extracted_path))
+            zip.extractall(path=extracted_path)
+        print("{} extracted to {}.".format(filepath, extracted_path))
+        # Add additional file with archive info
+        archive_info = {
+            "sha1": archive_sha,
+            "filename": os.path.split(filepath)[1]
+        }
+        with open(
+            os.path.join(
+                extracted_path,
+                ".slackviewer_archive_info.json"
+            ), 'w+'
+        ) as f:
+            json.dump(archive_info, f)
+
+    return extracted_path
+
+
 @click.command()
-@click.option("-d", "--dir", required=True)
 @click.option("-p", "--port", default=5000, type=click.INT)
-def main(dir, port):
-    user_data = get_users(dir)
-    channel_data = get_channels(dir)
-    channels = compile_channels(dir, user_data, channel_data)
+@click.option("-z", "--archive", type=click.Path(), required=True)
+def main(port, archive):
+    path = extract_archive(archive)
+    user_data = get_users(path)
+    channel_data = get_channels(path)
+    channels = compile_channels(path, user_data, channel_data)
 
     top = flask._app_ctx_stack
     top.channels = channels
