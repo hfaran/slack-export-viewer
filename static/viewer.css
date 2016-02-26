@@ -7,6 +7,37 @@ body {
     padding: 1em;
 }
 
+#fixed {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 200px;
+    text-align: center;
+    background-color: #4D394B;
+}
+
+#fixed a:link {
+    color: antiquewhite;
+}
+
+#fixed a:visited {
+    color: antiquewhite;
+}
+
+#fixed a:focus {
+    color: white;
+}
+
+#fixed h3 {
+    color: antiquewhite;
+}
+
+#fluid {
+    position: relative;
+    overflow: hidden;
+}
+
 .messages {
     width: 100%;
     max-width: 700px;

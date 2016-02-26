@@ -3,10 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <title>{{ title }}</title>
-    <link rel=stylesheet type=text/css href="../static/archive.css">
+    <link rel=stylesheet type=text/css href="../static/viewer.css">
 </head>
 <body>
-<div class="messages">
+<div id="fixed">
+    <h3>Channels</h3>
+    {% for channel in channels %}
+    <a href="/channel/{{ channel }}">#{{ channel }}</a><br />
+    {% endfor %}
+</div>
+<div class="messages" id="fluid">
     {% for message in messages %}
     <div>
         <img src="{{ message.img }}"/>
