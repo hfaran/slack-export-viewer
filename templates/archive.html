@@ -6,18 +6,18 @@
     <link rel=stylesheet type=text/css href="../static/archive.css">
 </head>
 <body>
-    <div class="messages">
-        {% for message in messages %}
-            <div>
-                <img src="{{ message.img }}" />
-                <div class="message">
-                    <div class="username">{{ message.username }}</div>
-                    <div class="time">{{ message.time }}</div>
-                    <div class="msg">{{ message.msg }}</div>
-                </div>
-            </div>
-            <br />
-        {% endfor %}
+<div class="messages">
+    {% for message in messages %}
+    <div>
+        <img src="{{ message.img }}"/>
+        <div class="message">
+            <div class="username">{{ message.username }}</div>
+            <div class="time">{{ message.time }}</div>
+            <div class="msg">{{ message.msg }}</div>
+        </div>
     </div>
+    <br/>
+    {% endfor %}
+</div>
 </body>
 </html>
