@@ -48,6 +48,7 @@ class Message(object):
     @property
     def msg(self):
         message = self._message["text"]
+        message = message.replace("<!channel>", "@channel")
         # Handle "<@U0BM1CGQY|calvinchanubc> has joined the channel"
         message = re.sub(r"<@U0\w+\|[A-Za-z0-9.-_]+>",
                          self._annotated_mention, message)
