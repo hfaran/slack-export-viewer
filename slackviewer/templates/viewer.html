@@ -5,6 +5,7 @@
     <title>#{{ name }}</title>
     <link rel=stylesheet type=text/css
           href="{{ url_for('static', filename='viewer.css') }}">
+    <script src="//code.jquery.com/jquery-1.12.0.min.js"></script>
 </head>
 <body>
 <div id="fixed">
@@ -22,7 +23,7 @@
         <br />
     {% endfor %}
 </div>
-<div class="messages" id="fluid">
+<div id="fluid" class="messages">
     {% for message in messages %}
     <div>
         <img src="{{ message.img }}"/>
@@ -35,5 +36,26 @@
     <br/>
     {% endfor %}
 </div>
+<script type="text/javascript">
+    console.log("Scrolling to bottom...");
+//    var fluid = $('#fluid');
+//    fluid.animate({
+//        scrollTop: fluid[0].scrollHeight - fluid[0].clientHeight
+//    }, 1000);
+    // fluid.scrollIntoView(false);
+    // console.log(fluid.prop("scrollHeight"));
+    function gotoBottom(id){
+        var div = document.getElementById(id);
+        console.log(div.className);
+        console.log(div.scrollTop);
+        console.log(div.scrollHeight);
+        console.log(div.clientHeight);
+        div.scrollTop = div.scrollHeight;
+        console.log(div.scrollTop);
+        $(document).scrollTop(div.scrollHeight);
+    }
+    gotoBottom("fluid");
+    //console.log()
+</script>
 </body>
 </html>
