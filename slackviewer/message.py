@@ -25,11 +25,15 @@ class Message(object):
             return self.__USER_DATA[self._message["user"]]["name"]
         except KeyError:
             # In case this is a bot or something, we fallback to "username"
-            if"username" in self._message:
+            if "username" in self._message:
                 return self._message["username"]
             # If that fails to, it's probably USLACKBOT...
-            else:
+            elif "user" in self._message:
                 return self.user_id
+            elif "bot_id" in self._message:
+                return self._message["bot_id"]
+            else:
+                return None
 
     @property
     def time(self):
@@ -39,7 +43,43 @@ class Message(object):
 
     @property
     def msg(self):
-        message = self._message["text"]
+        message = []
+
+        text = self._message["text"]
+        if text:
+            text = self._render_text(text)
+            message.append(text)
+
+        attachments = self._message.get("attachments", [])
+        for att in attachments:
+            message.append("")
+            if "pretext" in att:
+                pretext = self._render_text(att["pretext"])
+                message.append(pretext)
+            if "title" in att:
+                title = self._render_text("**{}**".format(att["title"].strip()))
+                message.append(title)
+            if "text" in att:
+                text = self._render_text(att["text"])
+                message.append(text)
+
+        if not message[0].strip():
+            message = message[1:]
+        return "<br />".join(message).strip()
+
+
+    @property
+    def img(self):
+        try:
+            return self.__USER_DATA[self._message["user"]]["profile"]["image_72"]
+        except KeyError:
+            return ""
+
+    ###################
+    # Private Methods #
+    ###################
+
+    def _render_text(self, message):
         message = message.replace("<!channel>", "@channel")
         message = self._slack_to_accepted_emoji(message)
         # Handle "<@U0BM1CGQY|calvinchanubc> has joined the channel"
@@ -52,7 +92,7 @@ class Message(object):
         # Handle "<mailto:...|...>"
         message = re.sub(r"<mailto:.*>", self._sub_hyperlink, message)
         # Handle hashtags (that are meant to be hashtags and not headings)
-        message = re.sub(r"^#\S+", self._sub_hashtag, message)
+        message = re.sub(r"#[A-Za-z0-9.-_]+", self._sub_hashtag, message)
         # Handle channel references
         message = re.sub(r"<#C0\w+>", self._sub_channel_ref, message)
         # Handle italics (convert * * to ** **)
@@ -82,17 +122,6 @@ class Message(object):
         message = emoji.emojize(message, use_aliases=True)
 
         return message
-
-    @property
-    def img(self):
-        try:
-            return self.__USER_DATA[self._message["user"]]["profile"]["image_72"]
-        except KeyError:
-            return ""
-
-    ###################
-    # Private Methods #
-    ###################
 
     def _slack_to_accepted_emoji(self, message):
         # https://github.com/Ranks/emojione/issues/114
