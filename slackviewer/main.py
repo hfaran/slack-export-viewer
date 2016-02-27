@@ -1,4 +1,5 @@
 import os
+import webbrowser
 
 import click
 import flask
@@ -20,8 +21,8 @@ def envvar(name, default):
     return lambda: os.environ.get(name, default)
 
 
-def debug_ennvar():
-    return os.environ.get('FLASK_DEBUG') == '1'
+def flag_ennvar(name):
+    return os.environ.get(name) == '1'
 
 
 @click.command()
@@ -32,8 +33,12 @@ def debug_ennvar():
               help="Path to your Slack export archive (.zip file)")
 @click.option('-I', '--ip', default=envvar('SEV_IP', '0.0.0.0'),
               type=click.STRING, help="Host IP to serve your content on")
-@click.option('--debug', is_flag=True, default=debug_ennvar())
-def main(port, archive, ip, debug):
+@click.option('--no-browser', is_flag=True,
+              default=flag_ennvar("SEV_NO_BROWSER"),
+              help="If you do not want a browser to open automatically, "
+                   "set this.")
+@click.option('--debug', is_flag=True, default=flag_ennvar("FLASK_DEBUG"))
+def main(port, archive, ip, no_browser, debug):
     if not archive:
         raise ValueError("Empty path provided for archive")
 
@@ -49,6 +54,9 @@ def main(port, archive, ip, debug):
 
     top = flask._app_ctx_stack
     top.channels = channels
+
+    if not no_browser:
+        webbrowser.open("http://{}:{}".format(ip, port))
 
     app.run(
         host=ip,
