@@ -22,6 +22,7 @@ setup(
     url='https://github.com/hfaran/slack-export-viewer',
     license='MIT License',
     author='Hamza Faran',
+    author_email='hamzafaran@outlook.com',
     description=('Slack Export Archive Viewer'),
     long_description=long_description,
     packages=["slackviewer"],

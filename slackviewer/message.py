@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 import datetime
 import re
 
@@ -57,7 +59,9 @@ class Message(object):
                 pretext = self._render_text(att["pretext"].strip())
                 message.append(pretext)
             if "title" in att:
-                title = self._render_text("**{}**".format(att["title"].strip()))
+                title = self._render_text("**{}**".format(
+                    att["title"].strip()
+                ))
                 message.append(title)
             if "text" in att:
                 text = self._render_text(att["text"].strip())
