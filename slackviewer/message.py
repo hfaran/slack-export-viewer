@@ -87,12 +87,15 @@ class Message(object):
                          self._sub_annotated_mention, message)
         # Handle "<@U0BM1CGQY>"
         message = re.sub(r"<@U0\w+>", self._sub_mention, message)
-        # Handle "<http(s|)://...>"
-        message = re.sub(r"<http(s|)://.*>", self._sub_hyperlink, message)
-        # Handle "<mailto:...|...>"
-        message = re.sub(r"<mailto:.*>", self._sub_hyperlink, message)
+        # Handle "<http(s|)://...>" or mailto
+        message = re.sub(
+            # http://stackoverflow.com/a/1547940/1798683
+            # TODO This regex is likely still incomplete or could be improved
+            r"<(https|http|mailto):[A-Za-z0-9_\.\-\/\|\?\,\=\#\:\@]+>",
+            self._sub_hyperlink, message
+        )
         # Handle hashtags (that are meant to be hashtags and not headings)
-        message = re.sub(r"#[A-Za-z0-9.-_]+", self._sub_hashtag, message)
+        message = re.sub(r"(^| )#[A-Za-z0-9.-_]+( |$)", self._sub_hashtag, message)
         # Handle channel references
         message = re.sub(r"<#C0\w+>", self._sub_channel_ref, message)
         # Handle italics (convert * * to ** **)
@@ -101,6 +104,8 @@ class Message(object):
         # Handle italics (convert _ _ to * *)
         message = re.sub(r"(^| )_[A-Za-z0-9\-._ ]+_( |$)",
                          self._sub_italics, message)
+        # Newlines to breaks
+        message = message.replace("\n", "<br />")
 
         message = markdown2.markdown(
             message,
@@ -142,7 +147,8 @@ class Message(object):
             url, title = compound.split("|")
         else:
             url, title = compound, compound
-        return "[{title}]({url})".format(url=url, title=title)
+        result = "[{title}]({url})".format(url=url, title=title)
+        return result
 
     def _sub_hashtag(self, matchobj):
         text = matchobj.group(0)
