@@ -48,7 +48,7 @@ Options:
 
 ## Usage
 
-### Grab your Slack team's export
+### 1) Grab your Slack team's export
 
 * Visit [https://yourslackteam.slack.com/services/export]
 (https://yourslackteam-magellan.slack.com/services/export) (*yourslackteam* should obviously be replaced with your **actual** Slack team)
@@ -56,7 +56,7 @@ Options:
 * Wait for it to complete
 * Refresh the page and download the export (.zip file) into whatever directory
 
-### Point `slack-export-viewer` to it
+### 2) Point `slack-export-viewer` to it
 
 Point slack-export-viewer to the .zip file and let it do its magic
 
