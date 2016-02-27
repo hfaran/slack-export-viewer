@@ -87,7 +87,7 @@ class Message(object):
                          self._sub_annotated_mention, message)
         # Handle "<@U0BM1CGQY>"
         message = re.sub(r"<@U0\w+>", self._sub_mention, message)
-        # Handle "<http(s|)://...>" or mailto
+        # Handle links
         message = re.sub(
             # http://stackoverflow.com/a/1547940/1798683
             # TODO This regex is likely still incomplete or could be improved
@@ -95,7 +95,8 @@ class Message(object):
             self._sub_hyperlink, message
         )
         # Handle hashtags (that are meant to be hashtags and not headings)
-        message = re.sub(r"(^| )#[A-Za-z0-9.-_]+( |$)", self._sub_hashtag, message)
+        message = re.sub(r"(^| )#[A-Za-z0-9\.\-\_]+( |$)",
+                         self._sub_hashtag, message)
         # Handle channel references
         message = re.sub(r"<#C0\w+>", self._sub_channel_ref, message)
         # Handle italics (convert * * to ** **)
@@ -104,8 +105,10 @@ class Message(object):
         # Handle italics (convert _ _ to * *)
         message = re.sub(r"(^| )_[A-Za-z0-9\-._ ]+_( |$)",
                          self._sub_italics, message)
-        # Newlines to breaks
-        message = message.replace("\n", "<br />")
+
+        # Escape any remaining hash characters to save them from being turned
+        #  into headers by markdown2
+        message = message.replace("#", "\\#")
 
         message = markdown2.markdown(
             message,
@@ -116,12 +119,21 @@ class Message(object):
                 #  for which the underscores it liked to mangle.
                 # We still have nice bold and italics formatting though
                 #  because we pre-process underscores into asterisks. :)
-                "code-friendly"
+                "code-friendly",
+                "fenced-code-blocks",
+                "pyshell"
             ]
         ).strip()
         # markdown2 likes to wrap everything in <p> tags
         if message.startswith("<p>") and message.endswith("</p>"):
             message = message[3:-4]
+
+        # Newlines to breaks
+        # Special handling cases for lists
+        message = message.replace("\n\n<ul>", "<ul>")
+        message = message.replace("\n<li>", "<li>")
+        # Indiscrimately replace everything else
+        message = message.replace("\n", "<br />")
 
         # Introduce unicode emoji
         message = emoji.emojize(message, use_aliases=True)
