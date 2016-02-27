@@ -41,8 +41,8 @@ Options:
 
 1) Grab the desired export you wish to look at:
 
-* Visit [https://\<yourslackteam\>.slack.com/services/export]
-(https://yourslackteam-magellan.slack.com/services/export)
+* Visit [https://yourslackteam.slack.com/services/export]
+(https://yourslackteam-magellan.slack.com/services/export) (*yourslackteam* should obviously be replaced with your **actual** Slack team)
 * Create an export
 * Wait for it to complete
 * Refresh the page and download the export (.zip file) into whatever directory
