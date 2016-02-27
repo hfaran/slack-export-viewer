@@ -136,7 +136,7 @@ class Message(object):
         # Special handling cases for lists
         message = message.replace("\n\n<ul>", "<ul>")
         message = message.replace("\n<li>", "<li>")
-        # Indiscrimately replace everything else
+        # Indiscriminately replace everything else
         message = message.replace("\n", "<br />")
 
         # Introduce unicode emoji
