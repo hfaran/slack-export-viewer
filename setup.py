@@ -17,7 +17,7 @@ long_description = read('README.md')
 
 
 setup(
-    name="slackviewer",
+    name="slack-export-viewer",
     version=slackviewer.__version__,
     url='https://github.com/hfaran/slack-export-viewer',
     license='MIT License',
@@ -31,5 +31,15 @@ setup(
     ]},
     include_package_data=True,
     # https://github.com/mitsuhiko/flask/issues/1562
-    zip_safe=False
+    zip_safe=False,
+    classifiers=[
+        'Development Status :: 3 - Alpha',
+        'Environment :: Console',
+        'Environment :: Web Environment',
+        'License :: OSI Approved :: MIT License',
+        'Operating System :: OS Independent',
+        'Programming Language :: Python',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.5',
+    ],
 )
