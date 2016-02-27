@@ -54,13 +54,13 @@ class Message(object):
         for att in attachments:
             message.append("")
             if "pretext" in att:
-                pretext = self._render_text(att["pretext"])
+                pretext = self._render_text(att["pretext"].strip())
                 message.append(pretext)
             if "title" in att:
                 title = self._render_text("**{}**".format(att["title"].strip()))
                 message.append(title)
             if "text" in att:
-                text = self._render_text(att["text"])
+                text = self._render_text(att["text"].strip())
                 message.append(text)
 
         if not message[0].strip():
@@ -152,7 +152,15 @@ class Message(object):
 
     def _sub_hashtag(self, matchobj):
         text = matchobj.group(0)
-        return "*{}*".format(text)
+
+        starting_space = " " if text[0] == " " else ""
+        ending_space = " " if text[-1] == " " else ""
+
+        return "{}*{}*{}".format(
+            starting_space,
+            text.strip(),
+            ending_space
+        )
 
     def _sub_channel_ref(self, matchobj):
         channel_id = matchobj.group(0)[2:-1]
