@@ -11,13 +11,15 @@
     <h3>Channels</h3>
     {% for channel in channels %}
         {% if channel == name %}
-        <a href="/channel/{{ channel }}">
+        <a href="{{ url_for('channel_name', name=channel) }}">
             <span style="background-color: #ab9ba9">
                 #{{ channel }}
             </span>
         </a>
         {% else %}
-        <a href="/channel/{{ channel }}">#{{ channel }}</a>
+        <a href="{{ url_for('channel_name', name=channel) }}">
+            #{{ channel }}
+        </a>
         {% endif %}
         <br />
     {% endfor %}

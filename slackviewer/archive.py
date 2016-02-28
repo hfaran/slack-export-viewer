@@ -6,9 +6,14 @@ import zipfile
 from slackviewer.message import Message
 
 
-def compile_channels(path, user_data, channel_data):
+def get_channel_list(path):
     channels = [d for d in os.listdir(path)
                 if os.path.isdir(os.path.join(path, d))]
+    return channels
+
+
+def compile_channels(path, user_data, channel_data):
+    channels = get_channel_list(path)
     chats = {}
     for channel in channels:
         channel_dir_path = os.path.join(path, channel)
