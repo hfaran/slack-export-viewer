@@ -47,7 +47,7 @@ class Message(object):
     def msg(self):
         message = []
 
-        text = self._message["text"]
+        text = self._message.get("text")
         if text:
             text = self._render_text(text)
             message.append(text)
