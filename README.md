@@ -17,8 +17,7 @@ Slack team's export (instead of having to dive into hundreds of JSON files).
 
 ### 1) Grab your Slack team's export
 
-* Visit [https://yourslackteam.slack.com/services/export]
-(https://yourslackteam-magellan.slack.com/services/export) (*yourslackteam* should obviously be replaced with your **actual** Slack team)
+* Visit [https://my.slack.com/services/export](https://my.slack.com/services/export)
 * Create an export
 * Wait for it to complete
 * Refresh the page and download the export (.zip file) into whatever directory
