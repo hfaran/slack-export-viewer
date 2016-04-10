@@ -82,6 +82,12 @@ class Message(object):
             if isimage:
                 message.append('<img class="file" src="%s">' % url)
 
+        if self._message.get('subtype', None) == 'file_comment':
+            comment = self._message['comment']
+            comment_text = comment['comment']
+            #message.append(self._render_text(comment_text))
+            message.append('<br /> %s' % comment_text)
+
         if not message[0].strip():
             message = message[1:]
         return "<br />".join(message).strip()
