@@ -49,7 +49,7 @@ body {
     padding-left: 25vw;
 }
 
-.messages img {
+.messages img.headshot {
     background-color: rgb(248, 244, 240);
     width: 36px;
     height: 36px;
@@ -58,6 +58,14 @@ body {
     vertical-align: top;
     margin-right: 0.65em;
     float: left;
+}
+
+.messages img.file {
+	margin-left: auto;
+	margin-right: auto;
+	width: 80%;
+    display: block;
+    vertical-align: top;
 }
 
 .messages .time {
