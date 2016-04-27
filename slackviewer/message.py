@@ -67,6 +67,27 @@ class Message(object):
                 text = self._render_text(att["text"].strip())
                 message.append(text)
 
+        if self._message.get('subtype', None) == 'file_share':
+            thefile = self._message['file']
+            minetype = thefile['mimetype']
+            if minetype.split('/')[0] == 'image':
+                isimage = True
+            else:
+                isimage = False
+            url = thefile['url_private']
+            url_download = thefile['url_private_download']
+            
+            message.append('<a href="%s">Download File</a>' % url_download)
+
+            if isimage:
+                message.append('<img class="file" src="%s">' % url)
+
+        if self._message.get('subtype', None) == 'file_comment':
+            comment = self._message['comment']
+            comment_text = comment['comment']
+            #message.append(self._render_text(comment_text))
+            message.append('<br /> %s' % comment_text)
+
         if not message[0].strip():
             message = message[1:]
         return "<br />".join(message).strip()
@@ -180,7 +201,7 @@ class Message(object):
 
     def _sub_channel_ref(self, matchobj):
         channel_id = matchobj.group(0)[2:-1]
-        channel_name = self.__CHANNEL_DATA[channel_id]["name"]
+        channel_name = self.__CHANNEL_DATA.get(channel_id, {}).get("name", 'NotExist')
         return "*#{}*".format(channel_name)
 
     def __em_strong(self, matchobj, format="em"):
