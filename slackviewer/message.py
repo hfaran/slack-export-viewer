@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 import datetime
+import logging
 import re
 
 import emoji
@@ -180,7 +181,12 @@ class Message(object):
 
     def _sub_channel_ref(self, matchobj):
         channel_id = matchobj.group(0)[2:-1]
-        channel_name = self.__CHANNEL_DATA[channel_id]["name"]
+        try:
+            channel_name = self.__CHANNEL_DATA[channel_id]["name"]
+        except KeyError as e:
+            logging.error("A channel reference was detected but metadata "
+                          "not found in channels.json: {}".format(e))
+            channel_name = channel_id
         return "*#{}*".format(channel_name)
 
     def __em_strong(self, matchobj, format="em"):
