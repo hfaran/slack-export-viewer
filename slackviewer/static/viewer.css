@@ -82,3 +82,31 @@ body {
 .messages .message .msg {
     line-height: 1.5;
 }
+
+#channel-list {
+    margin: 0;
+    padding: 0;
+    list-style-type: none;
+}
+
+#channel-list .active {
+    background-color: #4C9689;
+}
+
+#channel-list a:hover {
+    text-decoration: none;
+    background: #3E313C;
+}
+
+a:link,
+a:visited,
+a:active {
+    color: #2a80b9;
+    text-decoration: none;
+}
+
+a:hover {
+    color: #439fe0;
+    text-decoration: underline;
+}
+
