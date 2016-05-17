@@ -68,8 +68,9 @@ class Message(object):
                 text = self._render_text(att["text"].strip())
                 message.append(text)
 
-        if not message[0].strip():
-            message = message[1:]
+        if message:
+            if not message[0].strip():
+                message = message[1:]
         return "<br />".join(message).strip()
 
 
