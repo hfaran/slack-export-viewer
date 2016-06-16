@@ -18,7 +18,7 @@ def compile_channels(path, user_data, channel_data):
     for channel in channels:
         channel_dir_path = os.path.join(path, channel)
         messages = []
-        for day in os.listdir(channel_dir_path):
+        for day in sorted(os.listdir(channel_dir_path)):
             with open(os.path.join(channel_dir_path, day)) as f:
                 day_messages = json.load(f)
                 messages.extend([Message(user_data, channel_data, d) for d in
