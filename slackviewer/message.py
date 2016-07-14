@@ -89,10 +89,10 @@ class Message(object):
         message = message.replace("<!channel>", "@channel")
         message = self._slack_to_accepted_emoji(message)
         # Handle "<@U0BM1CGQY|calvinchanubc> has joined the channel"
-        message = re.sub(r"<@U0\w+\|[A-Za-z0-9.-_]+>",
+        message = re.sub(r"<@U\d\w+\|[A-Za-z0-9.-_]+>",
                          self._sub_annotated_mention, message)
         # Handle "<@U0BM1CGQY>"
-        message = re.sub(r"<@U0\w+>", self._sub_mention, message)
+        message = re.sub(r"<@U\d\w+>", self._sub_mention, message)
         # Handle links
         message = re.sub(
             # http://stackoverflow.com/a/1547940/1798683
