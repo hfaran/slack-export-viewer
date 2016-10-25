@@ -11,7 +11,7 @@ app = flask.Flask(
 @app.route("/channel/<name>")
 def channel_name(name):
     messages = flask._app_ctx_stack.channels[name]
-    channels = flask._app_ctx_stack.channels.keys()
+    channels = list(flask._app_ctx_stack.channels.keys())
     return flask.render_template("viewer.html", messages=messages,
                                  name=name.format(name=name),
                                  channels=sorted(channels))
@@ -19,7 +19,7 @@ def channel_name(name):
 
 @app.route("/")
 def index():
-    channels = flask._app_ctx_stack.channels.keys()
+    channels = list(flask._app_ctx_stack.channels.keys())
     if "general" in channels:
         return channel_name("general")
     else:
