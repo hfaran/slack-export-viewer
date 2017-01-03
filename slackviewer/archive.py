@@ -2,14 +2,13 @@ import hashlib
 import json
 import os
 import zipfile
+import glob
 
 from slackviewer.message import Message
 
 
 def get_channel_list(path):
-    channels = [d for d in os.listdir(path)
-                if os.path.isdir(os.path.join(path, d))]
-    return channels
+    return [ c["name"] for c in get_channels(path).values() ]
 
 
 def compile_channels(path, user_data, channel_data):
@@ -18,8 +17,11 @@ def compile_channels(path, user_data, channel_data):
     for channel in channels:
         channel_dir_path = os.path.join(path, channel)
         messages = []
-        for day in sorted(os.listdir(channel_dir_path)):
-            with open(os.path.join(channel_dir_path, day)) as f:
+        day_files = glob.glob(os.path.join(channel_dir_path, "*.json"))
+        if not day_files:
+            continue
+        for day in sorted(day_files):
+            with open(os.path.join(path, day)) as f:
                 day_messages = json.load(f)
                 messages.extend([Message(user_data, channel_data, d) for d in
                                  day_messages])
@@ -43,6 +45,9 @@ def SHA1_file(filepath):
 
 
 def extract_archive(filepath):
+    if os.path.isdir(filepath):
+        return filepath
+
     if not zipfile.is_zipfile(filepath):
         # Misuse of TypeError? :P
         raise TypeError("{} is not a zipfile".format(filepath))
