@@ -9,6 +9,7 @@ from slackviewer.message import Message
 def get_channel_list(path):
     channels = [d for d in os.listdir(path)
                 if os.path.isdir(os.path.join(path, d))]
+    channels = sorted(channels)
     return channels
 
 
