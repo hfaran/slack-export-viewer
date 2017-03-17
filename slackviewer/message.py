@@ -81,6 +81,10 @@ class Message(object):
         except KeyError:
             return ""
 
+    @property
+    def id(self):
+        return self.time
+
     ###################
     # Private Methods #
     ###################
