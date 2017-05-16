@@ -4,15 +4,15 @@
     <meta charset="UTF-8">
     <title>#{{ name }}</title>
     <link rel=stylesheet type=text/css
-          href="{{ url_for('static', filename='viewer.css') }}">
+          href="{{ 'viewer.css' }}">
 </head>
 <body>
 <div id="fixed">
     <h3>Channels</h3>
     <ul id="channel-list">
         {% for channel in channels %}
-            <li class="channel {% if channel == name %}active{% endif %}">
-                <a href="{{ url_for('channel_name', name=channel) }}">
+            <li class="channel{% if channel == name %}active{% endif %}">
+                <a href="{{ channel }}.html">
                     #{{ channel }}
                 </a>
             </li>
@@ -34,5 +34,9 @@
         <br/>
     {% endfor %}
 </div>
+<script type='text/javascript'>
+    var objDiv = document.getElementById("fluid");
+    objDiv.scrollTop = objDiv.scrollHeight;
+</script>
 </body>
 </html>

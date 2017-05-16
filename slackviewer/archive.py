@@ -21,7 +21,7 @@ def compile_channels(path, user_data, channel_data):
         day_files = glob.glob(os.path.join(channel_dir_path, "*.json"))
         if not day_files:
             continue
-        for day in sorted(day_files):
+        for day in sorted(day_files, reverse=False):
             with open(os.path.join(path, day)) as f:
                 day_messages = json.load(f)
                 messages.extend([Message(user_data, channel_data, d) for d in
@@ -48,7 +48,7 @@ def SHA1_file(filepath):
 def extract_archive(filepath):
     if os.path.isdir(filepath):
         print("Archive already extracted. Viewing from %s") %(filepath)
-        return(filepath)
+        return(os.path.abspath(filepath))
 
     if not zipfile.is_zipfile(filepath):
         # Misuse of TypeError? :P

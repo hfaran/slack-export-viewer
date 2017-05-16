@@ -1,10 +1,11 @@
 import os
-import webbrowser
-
 import click
-import flask
 
-from slackviewer.app import app
+from jinja2 import \
+    Environment, \
+    PackageLoader, \
+    select_autoescape
+
 from slackviewer.archive import \
     extract_archive, \
     get_users, \
@@ -25,44 +26,32 @@ def flag_ennvar(name):
     return os.environ.get(name) == '1'
 
 
-def configure_app(app, archive, debug):
-    app.debug = debug
-    if app.debug:
-        print("WARNING: DEBUG MODE IS ENABLED!")
-    app.config["PROPAGATE_EXCEPTIONS"] = True
-
-    path = extract_archive(archive)
-    user_data = get_users(path)
-    channel_data = get_channels(path)
-    channels = compile_channels(path, user_data, channel_data)
-
-    top = flask._app_ctx_stack
-    top.channels = channels
-
-
 @click.command()
-@click.option('-p', '--port', default=envvar('SEV_PORT', '5000'),
-              type=click.INT, help="Host port to serve your content on")
 @click.option("-z", "--archive", type=click.Path(), required=True,
-              default=envvar('SEV_ARCHIVE', ''),
-              help="Path to your Slack export archive (.zip file or directory)”)
-@click.option('-I', '--ip', default=envvar('SEV_IP', 'localhost'),
-              type=click.STRING, help="Host IP to serve your content on")
-@click.option('--no-browser', is_flag=True,
-              default=flag_ennvar("SEV_NO_BROWSER"),
-              help="If you do not want a browser to open "
-                   "automatically, set this.")
-@click.option('--debug', is_flag=True, default=flag_ennvar("FLASK_DEBUG"))
-def main(port, archive, ip, no_browser, debug):
+              default=envvar('SEV_ARCHIVE', ''))
+def main(archive):
     if not archive:
         raise ValueError("Empty path provided for archive")
 
-    configure_app(app, archive, debug)
+    arch_path = extract_archive(archive)
+    user_data = get_users(arch_path)
+    channel_data = get_channels(arch_path)
+    channels = compile_channels(arch_path, user_data, channel_data)
 
-    if not no_browser:
-        webbrowser.open("http://{}:{}".format(ip, port))
+    path = os.path.join(os.path.split(arch_path)[0], 'ArchiveWebView')
+    if not path:
+        os.makedirs(path)
+    env = Environment(loader = PackageLoader('slackviewer', 'templates'),
+                      autoescape=select_autoescape(['html', 'xml']))
+    css_file = env.get_template('viewer.css').render()
+    with open(os.path.join(path, 'viewer.css'), "w") as file:
+        file.write(css_file)
 
-    app.run(
-        host=ip,
-        port=port
-    )
+    template = env.get_template('viewer.html')
+    for name in sorted(channels):
+        page = template.render(messages=channels[name],
+                               channels=sorted(channels.keys()),
+                               name=name)
+        with open("{}.html".format(os.path.join(path, name)), "wb") as file:
+            file.write(page.encode('ascii', 'ignore'))
+    print ("Finished creating web files for archive")
