@@ -5,6 +5,7 @@
 body {
     text-align: center;
     padding: 1em;
+    width: 700px;
 }
 
 #fixed {
@@ -38,6 +39,7 @@ body {
 }
 
 .messages {
+    overflow: auto;
     width: 100%;
     max-width: 70vw;
     text-align: left;
@@ -46,7 +48,7 @@ body {
     as opposed to the right of the #fixed div, so we have a decent-ish 25vw
     padding to cover most screens
     XXX Still a hack though */
-    padding-left: 25vw;
+    padding-left: 20vw;
 }
 
 .messages img {
