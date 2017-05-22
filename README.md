@@ -56,7 +56,7 @@ Usage: slack-export-viewer [OPTIONS]
 
 Options:
   -p, --port INTEGER  Host port to serve your content on
-  -z, --archive PATH  Path to your Slack export archive (.zip file)
+  -z, --archive PATH  Path to your Slack export archive (.zip file or directory)
                       [required]
   -I, --ip TEXT       Host IP to serve your content on
   --no-browser        If you do not want a browser to open automatically, set

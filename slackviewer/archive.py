@@ -8,8 +8,7 @@ from slackviewer.message import Message
 
 
 def get_channel_list(path):
-    channels = [ c["name"] for c in get_channels(path).values() ]
-    return channels
+    return [c["name"] for c in get_channels(path).values()]
 
 
 def compile_channels(path, user_data, channel_data):
@@ -47,8 +46,8 @@ def SHA1_file(filepath):
 
 def extract_archive(filepath):
     if os.path.isdir(filepath):
-        print("Archive already extracted. Viewing from %s") %(filepath)
-        return(filepath)
+        print("Archive already extracted. Viewing from {}...".format(filepath))
+        return filepath
 
     if not zipfile.is_zipfile(filepath):
         # Misuse of TypeError? :P
