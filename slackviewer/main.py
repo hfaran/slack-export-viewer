@@ -45,7 +45,7 @@ def configure_app(app, archive, debug):
               type=click.INT, help="Host port to serve your content on")
 @click.option("-z", "--archive", type=click.Path(), required=True,
               default=envvar('SEV_ARCHIVE', ''),
-              help="Path to your Slack export archive (.zip file or directory)”)
+              help="Path to your Slack export archive (.zip file or directory)")
 @click.option('-I', '--ip', default=envvar('SEV_IP', 'localhost'),
               type=click.STRING, help="Host IP to serve your content on")
 @click.option('--no-browser', is_flag=True,
