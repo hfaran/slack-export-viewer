@@ -8,7 +8,7 @@ app = flask.Flask(
 )
 
 
-@app.route("/channel/<name>")
+@app.route("/channel/<name>/")
 def channel_name(name):
     messages = flask._app_ctx_stack.channels[name]
     channels = list(flask._app_ctx_stack.channels.keys())
