@@ -9,7 +9,12 @@ from slackviewer.archive import \
     extract_archive, \
     get_users, \
     get_channels, \
-    compile_channels
+    get_groups, \
+    get_dms, \
+    compile_channels, \
+    compile_groups, \
+    compile_dms, \
+    compile_dm_users
 
 
 def envvar(name, default):
@@ -32,12 +37,22 @@ def configure_app(app, archive, debug):
     app.config["PROPAGATE_EXCEPTIONS"] = True
 
     path = extract_archive(archive)
+
     user_data = get_users(path)
     channel_data = get_channels(path)
+    group_data = get_groups(path)
+    dm_data = get_dms(path)
+
     channels = compile_channels(path, user_data, channel_data)
+    groups = compile_groups(path, user_data, group_data)
+    dms = compile_dms(path, user_data, dm_data)
+    dm_users = compile_dm_users(path, user_data, dm_data)
 
     top = flask._app_ctx_stack
     top.channels = channels
+    top.groups = groups
+    top.dms = dms
+    top.dm_users = dm_users
 
 
 @click.command()

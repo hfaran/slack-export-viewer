@@ -138,6 +138,32 @@ body {
     text-decoration: none;
 }
 
+.list .dm {
+    padding: 4px 20px;
+}
+
+.list .dm a {
+  width: 100%
+  padding: 10px 20px;
+}
+
+.list .dm.active {
+    background-color: #4C9689;
+}
+
+.list .dm.active:hover {
+    background-color: #4C9689;
+}
+
+.list .dm:hover {
+    text-decoration: none;
+    background: #3E313C;
+}
+
+.list .dm a:hover {
+    text-decoration: none;
+}
+
 a:link,
 a:visited,
 a:active {

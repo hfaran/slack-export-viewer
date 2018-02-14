@@ -11,7 +11,7 @@
     <h3>Public Channels</h3>
     <ul class="list" id="channel-list">
         {% for channel in channels %}
-            <li class="channel {% if channel == name %}active{% endif %}">
+            <li class="channel{% if channel == name %} active{% endif %}">
                 <a href="{{ url_for('channel_name', name=channel) }}">
                     # {{ channel }}
                 </a>
@@ -21,9 +21,19 @@
     <h3>Private Channels</h3>
     <ul class="list" id="group-list">
         {% for group in groups %}
-            <li class="group {% if group == name %}active{% endif %}">
+            <li class="group{% if group == name %} active{% endif %}">
                 <a href="{{ url_for('group_name', name=group) }}">
                     &#128274; {{ group }}
+                </a>
+            </li>
+        {% endfor %}
+    </ul>
+    <h3>Direct Messages</h3>
+    <ul class="list" id="dms-list">
+        {% for dm in dm_users %}
+            <li class="dm{% if dm['id'] == id %} active{% endif %}">
+                <a href="{{ url_for('dm_id', id=dm['id']) }}">
+                    &#128100; {{ dm["users"][0].name }}, {{ dm["users"][1].name }}
                 </a>
             </li>
         {% endfor %}
