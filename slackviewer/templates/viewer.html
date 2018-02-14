@@ -2,26 +2,36 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>#{{ name }}</title>
+    <title>Slack Export - #{{ name }}</title>
     <link rel=stylesheet type=text/css
           href="{{ url_for('static', filename='viewer.css') }}">
 </head>
 <body>
-<div id="fixed">
-    <h3>Channels</h3>
-    <ul id="channel-list">
+<div id="sidebar">
+    <h3>Public Channels</h3>
+    <ul class="list" id="channel-list">
         {% for channel in channels %}
             <li class="channel {% if channel == name %}active{% endif %}">
                 <a href="{{ url_for('channel_name', name=channel) }}">
-                    #{{ channel }}
+                    # {{ channel }}
+                </a>
+            </li>
+        {% endfor %}
+    </ul>
+    <h3>Private Channels</h3>
+    <ul class="list" id="group-list">
+        {% for group in groups %}
+            <li class="group {% if group == name %}active{% endif %}">
+                <a href="{{ url_for('group_name', name=group) }}">
+                    &#128274; {{ group }}
                 </a>
             </li>
         {% endfor %}
     </ul>
 </div>
-<div class="messages" id="fluid">
+<div class="messages">
     {% for message in messages %}
-        <div>
+        <div class="message-container">
           <div id="{{ message.id }}">
             <img src="{{ message.img }}"/>
             <div class="message">

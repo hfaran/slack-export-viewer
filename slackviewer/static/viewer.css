@@ -1,52 +1,49 @@
+@import url('https://fonts.googleapis.com/css?family=Lato:400,900');
+
 * {
-    font-family: sans-serif;
+    font-family: 'Lato', sans-serif;
 }
 
 body {
-    text-align: center;
-    padding: 1em;
+    padding: 0;
+    margin: 0;
+    height: 100vh;
+    overflow: hidden;
 }
 
-#fixed {
-    position: fixed;
-    top: 0;
-    bottom: 0;
-    left: 0;
-
-    padding-left: 2vw;
-    padding-right: 2vw;
-    padding-bottom: 2vw;
-
-    text-align: left;
-    background-color: #4D394B;
-    z-index: 10;
-    overflow-y: scroll;
-    overflow-x: auto;
+#sidebar {
+  display: inline-block;
+  width: 220px;
+  color: white;
+  text-align: left;
+  background-color: #4D394B;
+  z-index: 10;
+  overflow-y: scroll;
+  overflow-x: auto;
+  height: 100vh;
 }
 
-#fixed a {
+#sidebar a {
     color: white;
 }
 
-#fixed h3 {
-    color: white;
-}
-
-#fluid {
-    position: relative;
-    z-index: 1;
+#sidebar h3 {
+  margin: 20px 20px;
+  color: white;
+  font-weight: 900;
 }
 
 .messages {
-    width: 100%;
-    max-width: 70vw;
+    width: calc(100vw - 244px);
+    height: 100vh;
     text-align: left;
     display: inline-block;
-    /* For some reason, this pads from the left of the screen
-    as opposed to the right of the #fixed div, so we have a decent-ish 25vw
-    padding to cover most screens
-    XXX Still a hack though */
-    padding-left: 25vw;
+    padding-left: 20px;
+    overflow-y: scroll;
+}
+
+.messages .message-container:first-child {
+  margin-top: 20px;
 }
 
 .messages img {
@@ -83,19 +80,62 @@ body {
     line-height: 1.5;
 }
 
-#channel-list {
+.list {
     margin: 0;
     padding: 0;
     list-style-type: none;
 }
 
-#channel-list .active {
+.list .channel {
+    padding: 4px 20px;
+}
+
+.list .channel a {
+  width: 100%
+  padding: 10px 20px;
+}
+
+.list .channel.active {
     background-color: #4C9689;
 }
 
-#channel-list a:hover {
+.list .channel.active:hover {
+    background-color: #4C9689;
+}
+
+.list .channel:hover {
     text-decoration: none;
     background: #3E313C;
+}
+
+.list .channel a:hover {
+    text-decoration: none;
+}
+
+.list .group {
+    padding: 4px 20px;
+}
+
+.list .group a {
+  width: 100%
+  padding: 10px 20px;
+}
+
+.list .group.active {
+    background-color: #4C9689;
+}
+
+.list .group.active:hover {
+    background-color: #4C9689;
+}
+
+.list .group:hover {
+    text-decoration: none;
+    background: #3E313C;
+}
+
+.list .group a:hover {
+    text-decoration: none;
 }
 
 a:link,
@@ -109,4 +149,3 @@ a:hover {
     color: #439fe0;
     text-decoration: underline;
 }
-
