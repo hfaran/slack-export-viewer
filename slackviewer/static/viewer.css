@@ -13,7 +13,7 @@ body {
 
 #sidebar {
   display: inline-block;
-  width: 220px;
+  width: 250px;
   color: white;
   text-align: left;
   background-color: #4D394B;
@@ -25,6 +25,7 @@ body {
 
 #sidebar a {
     color: white;
+    font-size: 14px;
 }
 
 #sidebar h3 {
@@ -34,7 +35,7 @@ body {
 }
 
 .messages {
-    width: calc(100vw - 244px);
+    width: calc(100vw - 274px);
     height: 100vh;
     text-align: left;
     display: inline-block;

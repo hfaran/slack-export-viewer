@@ -21,6 +21,7 @@ def channel_name(name):
                                  groups=sorted(groups),
                                  dm_users=sorted(dm_users))
 
+
 @app.route("/group/<name>/")
 def group_name(name):
     messages = flask._app_ctx_stack.groups[name]
@@ -33,6 +34,7 @@ def group_name(name):
                                  channels=sorted(channels),
                                  groups=sorted(groups),
                                  dm_users=sorted(dm_users))
+
 
 @app.route("/dm/<id>/")
 def dm_id(id):

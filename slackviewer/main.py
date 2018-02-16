@@ -7,6 +7,7 @@ import flask
 from slackviewer.app import app
 from slackviewer.archive import \
     extract_archive, \
+    get_empty_dm_names, \
     get_users, \
     get_channels, \
     get_groups, \
@@ -38,6 +39,8 @@ def configure_app(app, archive, debug):
 
     path = extract_archive(archive)
 
+    empty_dms = get_empty_dm_names(path)
+
     user_data = get_users(path)
     channel_data = get_channels(path)
     group_data = get_groups(path)
@@ -46,7 +49,7 @@ def configure_app(app, archive, debug):
     channels = compile_channels(path, user_data, channel_data)
     groups = compile_groups(path, user_data, group_data)
     dms = compile_dms(path, user_data, dm_data)
-    dm_users = compile_dm_users(path, user_data, dm_data)
+    dm_users = compile_dm_users(path, user_data, dm_data, empty_dms)
 
     top = flask._app_ctx_stack
     top.channels = channels

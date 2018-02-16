@@ -6,14 +6,18 @@ import glob
 
 from slackviewer.message import Message
 
+
 def get_channel_list(path):
     return [c["name"] for c in get_channels(path).values()]
+
 
 def get_group_list(path):
     return [c["name"] for c in get_groups(path).values()]
 
+
 def get_dm_list(path):
     return [c["id"] for c in get_dms(path).values()]
+
 
 def get_dm_members_list(path):
     return [c for c in get_dms(path).values()]
@@ -36,6 +40,7 @@ def compile_channels(path, user_data, channel_data):
         chats[channel] = messages
     return chats
 
+
 def compile_groups(path, user_data, group_data):
     groups = get_group_list(path)
     chats = {}
@@ -52,6 +57,7 @@ def compile_groups(path, user_data, group_data):
                                  day_messages])
         chats[group] = messages
     return chats
+
 
 def compile_dms(path, user_data, dm_data):
     dms = get_dm_list(path)
@@ -70,31 +76,38 @@ def compile_dms(path, user_data, dm_data):
         chats[dm] = messages
     return chats
 
-def compile_dm_users(path, user_data, dm_data):
+
+def compile_dm_users(path, user_data, dm_data, empty_dms):
     dms = get_dm_members_list(path)
     all_dms_users = []
     for dm in dms:
-        user1 = user_data[dm["members"][0]]
-        user2 = user_data[dm["members"][1]]
-        dm_user = {"id": dm["id"], "users": [user1, user2]}
-        all_dms_users.append(dm_user)
+        if dm["id"] not in empty_dms:
+            user1 = user_data[dm["members"][0]]
+            user2 = user_data[dm["members"][1]]
+            dm_user = {"id": dm["id"], "users": [user1, user2]}
+            all_dms_users.append(dm_user)
     print(all_dms_users[0])
     return all_dms_users
 
 # f is the file
 # u is each object in the parent array
 # return statement creates array of objects with their id mapped to the object
+
+
 def get_users(path):
     with open(os.path.join(path, "users.json")) as f:
         return {u["id"]: u for u in json.load(f)}
+
 
 def get_channels(path):
     with open(os.path.join(path, "channels.json")) as f:
         return {u["id"]: u for u in json.load(f)}
 
+
 def get_groups(path):
     with open(os.path.join(path, "groups.json")) as f:
         return {u["id"]: u for u in json.load(f)}
+
 
 def get_dms(path):
     with open(os.path.join(path, "dms.json")) as f:
@@ -130,7 +143,8 @@ def extract_archive(filepath):
         # Add additional file with archive info
         archive_info = {
             "sha1": archive_sha,
-            "filename": os.path.split(filepath)[1]
+            "filename": os.path.split(filepath)[1],
+            "empty_dms": remove_empty_dirs(extracted_path)
         }
         with open(
             os.path.join(
@@ -141,3 +155,32 @@ def extract_archive(filepath):
             json.dump(archive_info, f)
 
     return extracted_path
+
+
+empty_dir_names = []
+
+
+def remove_empty_dirs(path):
+    if not os.path.isdir(path):
+        return
+
+    files = os.listdir(path)
+    if len(files):
+        for f in files:
+            fullpath = os.path.join(path, f)
+            if os.path.isdir(fullpath):
+                remove_empty_dirs(fullpath)
+
+    files = os.listdir(path)
+    if len(files) == 0:
+        # print "Removing empty dir: ", path
+        empty_dir_names.append(path[-9:])
+        os.rmdir(path)
+
+    return empty_dir_names
+
+
+def get_empty_dm_names(path):
+    info = os.path.join(path, ".slackviewer_archive_info.json")
+    with open(info) as i:
+        return json.load(i)["empty_dms"]
