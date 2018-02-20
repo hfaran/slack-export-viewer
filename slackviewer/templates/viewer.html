@@ -57,11 +57,9 @@
 
 <script>
   var sidebar = document.querySelector('#sidebar');
-  sidebar.scrollTop = window.localStorage.getItem('scroll');
+  var selected = document.querySelector('.active');
+  sidebar.scrollTop = selected.offsetTop - 200;
 
-  sidebar.addEventListener('click', function() {
-    window.localStorage.setItem('scroll', sidebar.scrollTop);
-  });
 </script>
 </body>
 </html>

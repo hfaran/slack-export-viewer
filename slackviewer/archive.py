@@ -86,7 +86,7 @@ def compile_dm_users(path, user_data, dm_data, empty_dms):
             user2 = user_data[dm["members"][1]]
             dm_user = {"id": dm["id"], "users": [user1, user2]}
             all_dms_users.append(dm_user)
-    print(all_dms_users[0])
+
     return all_dms_users
 
 # f is the file
@@ -173,7 +173,6 @@ def remove_empty_dirs(path):
 
     files = os.listdir(path)
     if len(files) == 0:
-        # print "Removing empty dir: ", path
         empty_dir_names.append(path[-9:])
         os.rmdir(path)
 
