@@ -23,6 +23,14 @@ def get_dm_members_list(path):
     return [c for c in get_dms(path).values()]
 
 
+def get_mpim_list(path):
+    return [c["name"] for c in get_mpims(path).values()]
+
+
+def get_mpim_members_list(path):
+    return [c for c in get_mpims(path).values()]
+
+
 def compile_channels(path, user_data, channel_data):
     channels = get_channel_list(path)
     chats = {}
@@ -84,14 +92,38 @@ def compile_dm_users(path, user_data, dm_data, empty_dms):
         if dm["id"] not in empty_dms:
             user1 = user_data[dm["members"][0]]
             user2 = user_data[dm["members"][1]]
-            dm_user = {"id": dm["id"], "users": [user1, user2]}
-            all_dms_users.append(dm_user)
+            dm_members = {"id": dm["id"], "users": [user1, user2]}
+            all_dms_users.append(dm_members)
 
     return all_dms_users
 
-# f is the file
-# u is each object in the parent array
-# return statement creates array of objects with their id mapped to the object
+
+def compile_mpims(path, user_data, mpim_data):
+    mpims = get_mpim_list(path)
+    chats = {}
+    for mpim in mpims:
+        mpim_dir_path = os.path.join(path, mpim)
+        messages = []
+        day_files = glob.glob(os.path.join(mpim_dir_path, "*.json"))
+        if not day_files:
+            continue
+        for day in sorted(day_files):
+            with open(os.path.join(path, day)) as f:
+                day_messages = json.load(f)
+                messages.extend([Message(user_data, mpim_data, d) for d in
+                                 day_messages])
+        chats[mpim] = messages
+    return chats
+
+
+def compile_mpim_users(path, user_data, dm_data):
+    mpims = get_mpim_members_list(path)
+    all_mpim_users = []
+    for mpim in mpims:
+        mpim_members = {"name": mpim["name"], "users": [user_data[m] for m in mpim["members"]]}
+        all_mpim_users.append(mpim_members)
+
+    return all_mpim_users
 
 
 def get_users(path):
@@ -111,6 +143,11 @@ def get_groups(path):
 
 def get_dms(path):
     with open(os.path.join(path, "dms.json")) as f:
+        return {u["id"]: u for u in json.load(f)}
+
+
+def get_mpims(path):
+    with open(os.path.join(path, "mpims.json")) as f:
         return {u["id"]: u for u in json.load(f)}
 
 

@@ -13,7 +13,7 @@ body {
 
 #sidebar {
   display: inline-block;
-  width: 250px;
+  width: 280px;
   color: white;
   text-align: left;
   background-color: #4D394B;
@@ -21,6 +21,7 @@ body {
   overflow-y: scroll;
   overflow-x: auto;
   height: 100vh;
+  user-select: none;
 }
 
 #sidebar a {
@@ -34,8 +35,26 @@ body {
   font-weight: 900;
 }
 
+#sidebar h3:hover {
+  cursor: pointer;
+}
+
+#sidebar h3::after {
+  content: '❯ ';
+  display: inline-block;
+  -webkit-transform: rotate(90deg);
+  transform: rotate(90deg);
+  margin-left: 15px;
+}
+
+#sidebar h3.arrow::after {
+  margin-left: 10px;
+  -webkit-transform: none;
+  transform: none;
+}
+
 .messages {
-    width: calc(100vw - 274px);
+    width: calc(100vw - 304px);
     height: 100vh;
     text-align: left;
     display: inline-block;
@@ -87,81 +106,29 @@ body {
     list-style-type: none;
 }
 
-.list .channel {
+.list li {
     padding: 4px 20px;
 }
 
-.list .channel a {
+.list li a {
   width: 100%
   padding: 10px 20px;
 }
 
-.list .channel.active {
+.list li.active {
     background-color: #4C9689;
 }
 
-.list .channel.active:hover {
+.list li.active:hover {
     background-color: #4C9689;
 }
 
-.list .channel:hover {
+.list li:hover {
     text-decoration: none;
     background: #3E313C;
 }
 
-.list .channel a:hover {
-    text-decoration: none;
-}
-
-.list .group {
-    padding: 4px 20px;
-}
-
-.list .group a {
-  width: 100%
-  padding: 10px 20px;
-}
-
-.list .group.active {
-    background-color: #4C9689;
-}
-
-.list .group.active:hover {
-    background-color: #4C9689;
-}
-
-.list .group:hover {
-    text-decoration: none;
-    background: #3E313C;
-}
-
-.list .group a:hover {
-    text-decoration: none;
-}
-
-.list .dm {
-    padding: 4px 20px;
-}
-
-.list .dm a {
-  width: 100%
-  padding: 10px 20px;
-}
-
-.list .dm.active {
-    background-color: #4C9689;
-}
-
-.list .dm.active:hover {
-    background-color: #4C9689;
-}
-
-.list .dm:hover {
-    text-decoration: none;
-    background: #3E313C;
-}
-
-.list .dm a:hover {
+.list li a:hover {
     text-decoration: none;
 }
 
@@ -175,4 +142,8 @@ a:active {
 a:hover {
     color: #439fe0;
     text-decoration: underline;
+}
+
+.close {
+  display: none;
 }
