@@ -16,6 +16,7 @@ install_requires = read("requirements.txt").split()
 try:
     import pypandoc
     long_description = pypandoc.convert('README.md', 'rst')
+    long_description = long_description.replace("\r","")
 except(IOError, ImportError):
     long_description = read('README.md')
 
