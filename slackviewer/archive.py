@@ -138,18 +138,27 @@ def get_channels(path):
 
 
 def get_groups(path):
-    with open(os.path.join(path, "groups.json")) as f:
-        return {u["id"]: u for u in json.load(f)}
+    try:
+        with open(os.path.join(path, "groups.json")) as f:
+            return {u["id"]: u for u in json.load(f)}
+    except FileNotFoundError:
+        return {}
 
 
 def get_dms(path):
-    with open(os.path.join(path, "dms.json")) as f:
-        return {u["id"]: u for u in json.load(f)}
+    try:
+        with open(os.path.join(path, "dms.json")) as f:
+            return {u["id"]: u for u in json.load(f)}
+    except FileNotFoundError:
+        return {}
 
 
 def get_mpims(path):
-    with open(os.path.join(path, "mpims.json")) as f:
-        return {u["id"]: u for u in json.load(f)}
+    try:
+        with open(os.path.join(path, "mpims.json")) as f:
+            return {u["id"]: u for u in json.load(f)}
+    except FileNotFoundError:
+        return {}
 
 
 def SHA1_file(filepath):
