@@ -3,6 +3,7 @@ import json
 import os
 import zipfile
 import glob
+import tempfile
 
 from slackviewer.message import Message
 
@@ -166,7 +167,7 @@ def extract_archive(filepath):
         raise TypeError("{} is not a zipfile".format(filepath))
 
     archive_sha = SHA1_file(filepath)
-    extracted_path = os.path.join("/tmp", "_slackviewer", archive_sha)
+    extracted_path = os.path.join(tempfile.gettempdir(), "_slackviewer", archive_sha)
     if os.path.exists(extracted_path):
         print("{} already exists".format(extracted_path))
     else:
