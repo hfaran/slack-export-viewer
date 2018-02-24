@@ -13,7 +13,11 @@ def read(filename):
 
 
 install_requires = read("requirements.txt").split()
-long_description = read('README.md')
+try:
+    import pypandoc
+    long_description = pypandoc.convert('README.md', 'rst')
+except(IOError, ImportError):
+    long_description = read('README.md')
 
 
 setup(
