@@ -4,6 +4,7 @@ import os
 import zipfile
 import glob
 import tempfile
+import io
 
 from slackviewer.message import Message
 
@@ -42,7 +43,7 @@ def compile_channels(path, user_data, channel_data):
         if not day_files:
             continue
         for day in sorted(day_files):
-            with open(os.path.join(path, day)) as f:
+            with io.open(os.path.join(path, day), encoding="utf8") as f:
                 day_messages = json.load(f)
                 messages.extend([Message(user_data, channel_data, d) for d in
                                  day_messages])
@@ -60,7 +61,7 @@ def compile_groups(path, user_data, group_data):
         if not day_files:
             continue
         for day in sorted(day_files):
-            with open(os.path.join(path, day)) as f:
+            with io.open(os.path.join(path, day)) as f:
                 day_messages = json.load(f)
                 messages.extend([Message(user_data, group_data, d) for d in
                                  day_messages])
@@ -78,7 +79,7 @@ def compile_dms(path, user_data, dm_data):
         if not day_files:
             continue
         for day in sorted(day_files):
-            with open(os.path.join(path, day)) as f:
+            with io.open(os.path.join(path, day)) as f:
                 day_messages = json.load(f)
                 messages.extend([Message(user_data, dm_data, d) for d in
                                  day_messages])
@@ -109,7 +110,7 @@ def compile_mpims(path, user_data, mpim_data):
         if not day_files:
             continue
         for day in sorted(day_files):
-            with open(os.path.join(path, day)) as f:
+            with io.open(os.path.join(path, day)) as f:
                 day_messages = json.load(f)
                 messages.extend([Message(user_data, mpim_data, d) for d in
                                  day_messages])
@@ -128,18 +129,18 @@ def compile_mpim_users(path, user_data, dm_data):
 
 
 def get_users(path):
-    with open(os.path.join(path, "users.json")) as f:
+    with io.open(os.path.join(path, "users.json"), encoding="utf8") as f:
         return {u["id"]: u for u in json.load(f)}
 
 
 def get_channels(path):
-    with open(os.path.join(path, "channels.json")) as f:
+    with io.open(os.path.join(path, "channels.json"), encoding="utf8") as f:
         return {u["id"]: u for u in json.load(f)}
 
 
 def get_groups(path):
     try:
-        with open(os.path.join(path, "groups.json")) as f:
+        with io.open(os.path.join(path, "groups.json"), encoding="utf8") as f:
             return {u["id"]: u for u in json.load(f)}
     except FileNotFoundError:
         return {}
@@ -147,7 +148,7 @@ def get_groups(path):
 
 def get_dms(path):
     try:
-        with open(os.path.join(path, "dms.json")) as f:
+        with io.open(os.path.join(path, "dms.json"), encoding="utf8") as f:
             return {u["id"]: u for u in json.load(f)}
     except FileNotFoundError:
         return {}
@@ -155,14 +156,14 @@ def get_dms(path):
 
 def get_mpims(path):
     try:
-        with open(os.path.join(path, "mpims.json")) as f:
+        with io.open(os.path.join(path, "mpims.json"), encoding="utf8") as f:
             return {u["id"]: u for u in json.load(f)}
     except FileNotFoundError:
         return {}
 
 
 def SHA1_file(filepath):
-    with open(filepath, 'rb') as f:
+    with io.open(filepath, 'rb') as f:
         return hashlib.sha1(f.read()).hexdigest()
 
 
@@ -193,7 +194,7 @@ def extract_archive(filepath):
             "filename": os.path.split(filepath)[1],
             "empty_dms": remove_empty_dirs(extracted_path)
         }
-        with open(
+        with io.open(
             os.path.join(
                 extracted_path,
                 ".slackviewer_archive_info.json"
@@ -228,5 +229,5 @@ def remove_empty_dirs(path):
 
 def get_empty_dm_names(path):
     info = os.path.join(path, ".slackviewer_archive_info.json")
-    with open(info) as i:
+    with io.open(info) as i:
         return json.load(i)["empty_dms"]
