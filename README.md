@@ -13,26 +13,6 @@ Slack team's export (instead of having to dive into hundreds of JSON files).
 `slack-export-viewer` can be used locally on one machine for yourself to explore an export or it can be run on a headless server (as it is a Flask web app) if you also want to serve the content to the rest of your team.
 
 
-## Usage
-
-### 1) Grab your Slack team's export
-
-* Visit [https://my.slack.com/services/export](https://my.slack.com/services/export)
-* Create an export
-* Wait for it to complete
-* Refresh the page and download the export (.zip file) into whatever directory
-
-### 2) Point `slack-export-viewer` to it
-
-Point slack-export-viewer to the .zip file and let it do its magic
-
-```bash
-slack-export-viewer -z /path/to/export/zip
-```
-
-If everything went well, your archive will have been extracted, processed, and browser window will have opened showing your *#general* channel from the export.
-
-
 ## Installation
 
 I recommend [`pipsi`](https://github.com/mitsuhiko/pipsi) for a nice 
@@ -64,6 +44,26 @@ Options:
   --debug
   --help              Show this message and exit.
 ```
+
+
+## Usage
+
+### 1) Grab your Slack team's export
+
+* Visit [https://my.slack.com/services/export](https://my.slack.com/services/export)
+* Create an export
+* Wait for it to complete
+* Refresh the page and download the export (.zip file) into whatever directory
+
+### 2) Point `slack-export-viewer` to it
+
+Point slack-export-viewer to the .zip file and let it do its magic
+
+```bash
+slack-export-viewer -z /path/to/export/zip
+```
+
+If everything went well, your archive will have been extracted, processed, and browser window will have opened showing your *#general* channel from the export.
 
 
 ## Acknowledgements
