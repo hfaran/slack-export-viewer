@@ -6,6 +6,13 @@ Slack team's export (instead of having to dive into hundreds of JSON files).
 ![Preview](screenshot.png)
 
 
+## Contents
+
+* [Overview](#overview)
+* [Installation](#installation)
+* [Usage](#usage)
+* [Acknowledgements](#acknowledgements)
+
 ## Overview
 
 `slack-export-viewer` is useful for small teams on a free Slack plan (limited to 10,000 messages) who overrun their budget and ocassionally need a nice interface to refer back to previous messages. You get a web interface to easily scroll through all channels in the export without having to look at individual JSON files per channel per day.
