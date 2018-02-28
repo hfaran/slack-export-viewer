@@ -51,6 +51,9 @@ class Message(object):
         text = self._message.get("text")
         if text:
             text = self._render_text(text)
+
+            text = re.sub(r"```(.*?)```",r'<pre style="background-color: #E6E5DF; white-space: pre-wrap;">\1</pre>', text)
+
             message.append(text)
 
         attachments = self._message.get("attachments", [])
@@ -68,9 +71,15 @@ class Message(object):
                 text = self._render_text(att["text"].strip())
                 message.append(text)
 
+        file_link = self._message.get("file", {})
+        if file_link and "url_private" in file_link:
+            html = '<br><a href="%s"><img src="%s" height="200"></a><br>' % (file_link["url_private"], file_link["url_private"])
+            message.append(html)
+
         if message:
             if not message[0].strip():
                 message = message[1:]
+
         return "<br />".join(message).strip()
 
 
