@@ -77,7 +77,6 @@ class Message(object):
         if message:
             if not message[0].strip():
                 message = message[1:]
-
         return "<br />".join(message).strip()
 
 
