@@ -54,23 +54,30 @@ class Message(object):
             message.append(text)
 
         attachments = self._message.get("attachments", [])
-        for att in attachments:
-            message.append("")
-            if "pretext" in att:
-                pretext = self._render_text(att["pretext"].strip())
-                message.append(pretext)
-            if "title" in att:
-                title = self._render_text("**{}**".format(
-                    att["title"].strip()
-                ))
-                message.append(title)
-            if "text" in att:
-                text = self._render_text(att["text"].strip())
-                message.append(text)
+        if attachments is not None:
+            for att in attachments:
+                message.append("")
+                if "pretext" in att:
+                    pretext = self._render_text(att["pretext"].strip())
+                    message.append(pretext)
+                if "title" in att:
+                    title = self._render_text("**{}**".format(
+                        att["title"].strip()
+                    ))
+                    message.append(title)
+                if "text" in att:
+                    text = self._render_text(att["text"].strip())
+                    message.append(text)
+
+        file_link = self._message.get("file", {})
+        if file_link and "url_private" in file_link:
+            html = "<br><a href="{url}"><img src="{url}" height="200"></a><br>".format(url=file_link["url_private"])
+            message.append(html)
 
         if message:
             if not message[0].strip():
                 message = message[1:]
+
         return "<br />".join(message).strip()
 
 
@@ -147,6 +154,9 @@ class Message(object):
 
         # Introduce unicode emoji
         message = emoji.emojize(message, use_aliases=True)
+
+        # Adding <pre> tag for preformated code
+        message = re.sub(r"```(.*?)```",r'<pre style="background-color: #E6E5DF; white-space: pre-wrap;">\1</pre>', message)
 
         return message
 
