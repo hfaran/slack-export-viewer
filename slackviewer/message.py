@@ -71,7 +71,7 @@ class Message(object):
 
         file_link = self._message.get("file", {})
         if file_link and "url_private" in file_link:
-            html = "<br><a href="{url}"><img src="{url}" height="200"></a><br>".format(url=file_link["url_private"])
+            html = "<br><a href=\"{url}\"><img src=\"{url}\" height=\"200\"></a><br>".format(url=file_link["url_private"])
             message.append(html)
 
         if message:
