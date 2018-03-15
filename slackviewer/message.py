@@ -70,7 +70,7 @@ class Message(object):
                     message.append(text)
 
         file_link = self._message.get("file", {})
-        if file_link and "url_private" in file_link:
+        if file_link and "url_private" in file_link and "mimetype" in file_link and file_link["mimetype"].split('/')[0] == 'image':
             html = "<br><a href=\"{url}\"><img src=\"{url}\" height=\"200\"></a><br>".format(url=file_link["url_private"])
             message.append(html)
 
@@ -165,9 +165,10 @@ class Message(object):
         return message
 
     def _sub_mention(self, matchobj):
-        return "@{}".format(
-            self.__USER_DATA[matchobj.group(0)[2:-1]]["name"]
-        )
+        return ""
+        #return "@{}".format(
+        #    self.__USER_DATA[matchobj.group(0)[2:-1]]["name"]
+        #)
 
     def _sub_annotated_mention(self, matchobj):
         return "@{}".format((matchobj.group(0)[2:-1]).split("|")[1])
