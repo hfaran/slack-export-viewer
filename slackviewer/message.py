@@ -165,10 +165,13 @@ class Message(object):
         return message
 
     def _sub_mention(self, matchobj):
-        return ""
-        #return "@{}".format(
-        #    self.__USER_DATA[matchobj.group(0)[2:-1]]["name"]
-        #)
+        try:
+            return "@{}".format(
+                self.__USER_DATA[matchobj.group(0)[2:-1]]["name"]
+            )
+        except KeyError:
+            # In case this identifier is not in __USER_DATA, we fallback to identifier
+                return matchobj.group(0)[2:-1]
 
     def _sub_annotated_mention(self, matchobj):
         return "@{}".format((matchobj.group(0)[2:-1]).split("|")[1])
