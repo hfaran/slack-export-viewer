@@ -142,7 +142,7 @@ def get_groups(path):
     try:
         with io.open(os.path.join(path, "groups.json"), encoding="utf8") as f:
             return {u["id"]: u for u in json.load(f)}
-    except FileNotFoundError:
+    except IOError:
         return {}
 
 
@@ -150,7 +150,7 @@ def get_dms(path):
     try:
         with io.open(os.path.join(path, "dms.json"), encoding="utf8") as f:
             return {u["id"]: u for u in json.load(f)}
-    except FileNotFoundError:
+    except IOError:
         return {}
 
 
@@ -158,7 +158,7 @@ def get_mpims(path):
     try:
         with io.open(os.path.join(path, "mpims.json"), encoding="utf8") as f:
             return {u["id"]: u for u in json.load(f)}
-    except FileNotFoundError:
+    except IOError:
         return {}
 
 
@@ -197,10 +197,15 @@ def extract_archive(filepath):
         with io.open(
             os.path.join(
                 extracted_path,
-                ".slackviewer_archive_info.json"
-            ), 'w+'
+                ".slackviewer_archive_info.json",
+            ), 'w+', encoding="utf-8"
         ) as f:
-            json.dump(archive_info, f)
+            s = json.dumps(archive_info, ensure_ascii=False)
+            try:
+                s = unicode(s)  # py2
+            except NameError:
+                pass  # py3
+            f.write(s)
 
     return extracted_path
 
