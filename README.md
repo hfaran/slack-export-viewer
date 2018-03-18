@@ -1,5 +1,8 @@
 # Slack Export Viewer
 
+[![Build Status](https://travis-ci.org/hfaran/slack-export-viewer.svg?branch=master)](https://travis-ci.org/hfaran/slack-export-viewer)
+[![PyPI version](https://badge.fury.io/py/slack-export-viewer.svg)](http://badge.fury.io/py/slack-export-viewer)
+
 A Slack Export archive viewer that allows you to easily view and share your 
 Slack team's export (instead of having to dive into hundreds of JSON files).
 
