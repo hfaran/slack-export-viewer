@@ -200,7 +200,12 @@ def extract_archive(filepath):
                 ".slackviewer_archive_info.json",
             ), 'w+', encoding="utf-8"
         ) as f:
-            json.dump(archive_info, f)
+            s = json.dumps(archive_info, ensure_ascii=False)
+            try:
+                s = unicode(s)  # py2
+            except NameError:
+                pass  # py3
+            f.write(s)
 
     return extracted_path
 
