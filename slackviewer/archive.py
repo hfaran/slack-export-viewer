@@ -197,8 +197,8 @@ def extract_archive(filepath):
         with io.open(
             os.path.join(
                 extracted_path,
-                ".slackviewer_archive_info.json"
-            ), 'w+'
+                ".slackviewer_archive_info.json",
+            ), 'w+', encoding="utf-8"
         ) as f:
             json.dump(archive_info, f)
 
