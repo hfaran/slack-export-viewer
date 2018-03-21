@@ -3,9 +3,10 @@ import json
 import os
 import zipfile
 import glob
-import tempfile
 import io
 
+import slackviewer
+from slackviewer.constants import SLACKVIEWER_TEMP_PATH
 from slackviewer.message import Message
 
 
@@ -162,9 +163,16 @@ def get_mpims(path):
         return {}
 
 
-def SHA1_file(filepath):
+def SHA1_file(filepath, extra=""):
+    """Returns hex digest of SHA1 hash of file at filepath
+
+    :param str filepath: File to hash
+    :param bytes extra: Extra content added to raw read of file before taking hash
+    :return: hex digest of hash
+    :rtype: str
+    """
     with io.open(filepath, 'rb') as f:
-        return hashlib.sha1(f.read()).hexdigest()
+        return hashlib.sha1(f.read() + extra).hexdigest()
 
 
 def extract_archive(filepath):
@@ -176,8 +184,13 @@ def extract_archive(filepath):
         # Misuse of TypeError? :P
         raise TypeError("{} is not a zipfile".format(filepath))
 
-    archive_sha = SHA1_file(filepath)
-    extracted_path = os.path.join(tempfile.gettempdir(), "_slackviewer", archive_sha)
+    archive_sha = SHA1_file(
+        filepath=filepath,
+        # Add version of slackviewer to hash as well so we can invalidate the cached copy
+        #  if there are new features added
+        extra=bytes(slackviewer.__version__, "utf8")
+    )
+    extracted_path = os.path.join(SLACKVIEWER_TEMP_PATH, archive_sha)
     if os.path.exists(extracted_path):
         print("{} already exists".format(extracted_path))
     else:
