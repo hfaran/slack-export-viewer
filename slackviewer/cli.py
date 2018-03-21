@@ -1,6 +1,8 @@
 import click
 import shutil
 
+import os
+
 from slackviewer.constants import SLACKVIEWER_TEMP_PATH
 from slackviewer.utils.click import envvar, flag_ennvar
 
@@ -16,7 +18,10 @@ def cli():
               help="Actually performs file deletion")
 def clean(wet):
     if wet:
-        print("Removing {}...".format(SLACKVIEWER_TEMP_PATH))
-        shutil.rmtree(SLACKVIEWER_TEMP_PATH)
+        if os.path.exists(SLACKVIEWER_TEMP_PATH):
+            print("Removing {}...".format(SLACKVIEWER_TEMP_PATH))
+            shutil.rmtree(SLACKVIEWER_TEMP_PATH)
+        else:
+            print("Nothing to remove! {} does not exist.".format(SLACKVIEWER_TEMP_PATH))
     else:
         print("Run with -w to remove {}".format(SLACKVIEWER_TEMP_PATH))
