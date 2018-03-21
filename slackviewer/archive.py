@@ -8,6 +8,7 @@ import io
 import slackviewer
 from slackviewer.constants import SLACKVIEWER_TEMP_PATH
 from slackviewer.message import Message
+from slackviewer.utils.six import to_unicode, to_bytes
 
 
 def get_channel_list(path):
@@ -188,7 +189,7 @@ def extract_archive(filepath):
         filepath=filepath,
         # Add version of slackviewer to hash as well so we can invalidate the cached copy
         #  if there are new features added
-        extra=bytes(slackviewer.__version__, "utf8")
+        extra=to_bytes(slackviewer.__version__)
     )
     extracted_path = os.path.join(SLACKVIEWER_TEMP_PATH, archive_sha)
     if os.path.exists(extracted_path):
@@ -214,10 +215,7 @@ def extract_archive(filepath):
             ), 'w+', encoding="utf-8"
         ) as f:
             s = json.dumps(archive_info, ensure_ascii=False)
-            try:
-                s = unicode(s)  # py2
-            except NameError:
-                pass  # py3
+            s = to_unicode(s)
             f.write(s)
 
     return extracted_path
