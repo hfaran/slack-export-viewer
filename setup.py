@@ -33,7 +33,8 @@ setup(
     packages=["slackviewer"],
     install_requires = install_requires,
     entry_points={'console_scripts': [
-        'slack-export-viewer = slackviewer.main:main'
+        'slack-export-viewer = slackviewer.main:main',
+        'slack-export-viewer-cli = slackviewer.cli:cli'
     ]},
     include_package_data=True,
     # https://github.com/mitsuhiko/flask/issues/1562
