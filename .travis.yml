@@ -7,3 +7,5 @@ install:
     - "pip install -r dev-requirements.txt"
 script:
     - python app.py -z tests/testarchive.zip --test
+    - python cli.py clean
+    - python cli.py clean -w
