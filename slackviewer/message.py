@@ -70,18 +70,21 @@ class Message(object):
                     message.append(text)
 
         file_link = self._message.get("file", {})
-		# we would like to show file if it is image type
-        if file_link and "url_private" in file_link and "mimetype" in file_link \
-           and file_link["mimetype"].split('/')[0] == 'image':
+        # We would like to show file if it is image type
+        if (
+            file_link and
+            "url_private" in file_link and
+            "mimetype" in file_link and
+            file_link["mimetype"].split('/')[0] == 'image'
+        ):
             html = "<br><a href=\"{url}\"><img src=\"{url}\" height=\"200\"></a><br>" \
-                   .format(url=file_link["url_private"])
+                .format(url=file_link["url_private"])
             message.append(html)
 
         if message:
             if not message[0].strip():
                 message = message[1:]
         return "<br />".join(message).strip()
-
 
     @property
     def img(self):
@@ -158,7 +161,8 @@ class Message(object):
         message = emoji.emojize(message, use_aliases=True)
 
         # Adding <pre> tag for preformated code
-        message = re.sub(r"```(.*?)```",r'<pre style="background-color: #E6E5DF; white-space: pre-wrap;">\1</pre>', message)
+        message = re.sub(r"```(.*?)```", r'<pre style="background-color: #E6E5DF; white-space: pre-wrap;">\1</pre>',
+                         message)
 
         return message
 
@@ -174,7 +178,7 @@ class Message(object):
             )
         except KeyError:
             # In case this identifier is not in __USER_DATA, we fallback to identifier
-                return matchobj.group(0)[2:-1]
+            return matchobj.group(0)[2:-1]
 
     def _sub_annotated_mention(self, matchobj):
         return "@{}".format((matchobj.group(0)[2:-1]).split("|")[1])

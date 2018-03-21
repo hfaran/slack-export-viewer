@@ -1,4 +1,3 @@
-import os
 import webbrowser
 
 import click
@@ -19,19 +18,7 @@ from slackviewer.archive import \
     compile_dm_users, \
     compile_mpims, \
     compile_mpim_users
-
-
-def envvar(name, default):
-    """Create callable environment variable getter
-
-    :param str name: Name of environment variable
-    :param default: Default value to return in case it isn't defined
-    """
-    return lambda: os.environ.get(name, default)
-
-
-def flag_ennvar(name):
-    return os.environ.get(name) == '1'
+from slackviewer.utils.click import envvar, flag_ennvar
 
 
 def configure_app(app, archive, debug):
