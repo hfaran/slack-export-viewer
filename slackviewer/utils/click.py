@@ -1,3 +1,5 @@
+"""Extensions for use with click options"""
+
 import os
 
 
