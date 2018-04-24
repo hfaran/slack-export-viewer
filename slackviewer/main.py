@@ -6,7 +6,7 @@ import flask
 from slackviewer.app import app
 from slackviewer.archive import \
     extract_archive, \
-    get_empty_dm_names, \
+    get_empty_dm_names_from_file, \
     get_users, \
     get_channels, \
     get_groups, \
@@ -14,9 +14,9 @@ from slackviewer.archive import \
     get_mpims, \
     compile_channels, \
     compile_groups, \
-    compile_dms, \
+    compile_dm_messages, \
     compile_dm_users, \
-    compile_mpims, \
+    compile_mpim_messages, \
     compile_mpim_users
 from slackviewer.utils.click import envvar, flag_ennvar
 
@@ -29,7 +29,7 @@ def configure_app(app, archive, debug):
 
     path = extract_archive(archive)
 
-    empty_dms = get_empty_dm_names(path)
+    empty_dms = get_empty_dm_names_from_file(path)
 
     user_data = get_users(path)
     channel_data = get_channels(path)
@@ -39,9 +39,9 @@ def configure_app(app, archive, debug):
 
     channels = compile_channels(path, user_data, channel_data)
     groups = compile_groups(path, user_data, group_data)
-    dms = compile_dms(path, user_data, dm_data)
+    dms = compile_dm_messages(path, user_data, dm_data)
     dm_users = compile_dm_users(path, user_data, dm_data, empty_dms)
-    mpims = compile_mpims(path, user_data, dm_data)
+    mpims = compile_mpim_messages(path, user_data, dm_data)
     mpim_users = compile_mpim_users(path, user_data, mpim_data)
 
     top = flask._app_ctx_stack
