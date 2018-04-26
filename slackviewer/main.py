@@ -4,20 +4,8 @@ import click
 import flask
 
 from slackviewer.app import app
-from slackviewer.archive import \
-    extract_archive, \
-    get_empty_dm_names_from_file, \
-    get_users, \
-    get_channels, \
-    get_groups, \
-    get_dms, \
-    get_mpims, \
-    compile_channels, \
-    compile_groups, \
-    compile_dm_messages, \
-    compile_dm_users, \
-    compile_mpim_messages, \
-    compile_mpim_users
+from slackviewer.archive import extract_archive
+from slackviewer.reader import Reader
 from slackviewer.utils.click import envvar, flag_ennvar
 
 
@@ -28,29 +16,17 @@ def configure_app(app, archive, debug):
     app.config["PROPAGATE_EXCEPTIONS"] = True
 
     path = extract_archive(archive)
+    reader = Reader(path)
 
-    empty_dms = get_empty_dm_names_from_file(path)
-
-    user_data = get_users(path)
-    channel_data = get_channels(path)
-    group_data = get_groups(path)
-    dm_data = get_dms(path)
-    mpim_data = get_mpims(path)
-
-    channels = compile_channels(path, user_data, channel_data)
-    groups = compile_groups(path, user_data, group_data)
-    dms = compile_dm_messages(path, user_data, dm_data)
-    dm_users = compile_dm_users(path, user_data, dm_data, empty_dms)
-    mpims = compile_mpim_messages(path, user_data, dm_data)
-    mpim_users = compile_mpim_users(path, user_data, mpim_data)
+    # empty_dms = get_empty_dm_names_from_file(path)
 
     top = flask._app_ctx_stack
-    top.channels = channels
-    top.groups = groups
-    top.dms = dms
-    top.dm_users = dm_users
-    top.mpims = mpims
-    top.mpim_users = mpim_users
+    top.channels = reader.compile_channels()
+    top.groups = reader.compile_groups()
+    top.dms = reader.compile_dm_messages()
+    top.dm_users = reader.compile_dm_users()
+    top.mpims = reader.compile_mpim_messages()
+    top.mpim_users = reader.compile_mpim_users()
 
 
 @click.command()
