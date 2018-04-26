@@ -18,8 +18,6 @@ def configure_app(app, archive, debug):
     path = extract_archive(archive)
     reader = Reader(path)
 
-    # empty_dms = get_empty_dm_names_from_file(path)
-
     top = flask._app_ctx_stack
     top.channels = reader.compile_channels()
     top.groups = reader.compile_groups()
