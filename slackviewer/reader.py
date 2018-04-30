@@ -16,7 +16,11 @@ class Reader(object):
         with io.open(os.path.join(self._PATH, "users.json"), encoding="utf8") as f:
             self.__USER_DATA = {u["id"]: u for u in json.load(f)}
 
-    # Public Methods
+
+    ##################
+    # Public Methods #
+    ##################
+
     def compile_channels(self):
 
         channel_data = self._read_from_json("channels.json")
@@ -31,12 +35,13 @@ class Reader(object):
 
         return self._create_messages(group_names, group_data)
 
-    # TODO Possibly need to check here for all dms
     def compile_dm_messages(self):
         # Gets list of dm objects with dm ID and array of members ids
         dm_data = self._read_from_json("dms.json")
         dm_ids = [c["id"] for c in dm_data.values()]
 
+        # True is passed here to let the create messages function know that
+        # it is dm data being passed to it
         return self._create_messages(dm_ids, dm_data, True)
 
     def compile_dm_users(self):
@@ -45,11 +50,16 @@ class Reader(object):
 
         Returns a list of all dms with the members that have ever existed
 
+        :rtype: [object]
+        {
+            id: <id>
+            users: [<user_id>]
+        }
+
         """
 
         dm_data = self._read_from_json("dms.json")
-        print(dm_data)
-        dms = [c for c in dm_data(self._PATH).values()]
+        dms = dm_data.values()
         all_dms_users = []
 
         for dm in dms:
@@ -69,6 +79,18 @@ class Reader(object):
         return self._create_messages(mpim_names, mpim_data)
 
     def compile_mpim_users(self):
+        """
+        Gets the info for the members within the multiple person instant message
+
+        Returns a list of all dms with the members that have ever existed
+
+        :rtype: [object]
+        {
+            name: <name>
+            users: [<user_id>]
+        }
+
+        """
 
         mpim_data = self._read_from_json("mpims.json")
         mpims = [c for c in mpim_data.values()]
@@ -80,11 +102,27 @@ class Reader(object):
 
         return all_mpim_users
 
+
     ###################
     # Private Methods #
     ###################
 
     def _create_messages(self, names, data, isDms=False):
+        """
+        Creates object of arrays of messages from each json file specified by the names or ids
+
+        :param [str] names: names of each group of messages
+
+        :param [object] data: array of objects detailing where to get the messages from in
+        the directory structure
+
+        :param bool isDms: boolean value used to tell if the data is dm data so the function can
+        collect the empty dm directories and store them in memory only
+
+        :return: object of arrays of messages
+
+        :rtype: object
+        """
 
         chats = {}
         empty_dms = []
@@ -117,6 +155,16 @@ class Reader(object):
         return chats
 
     def _read_from_json(self, file):
+        """
+        Reads the file specified from json and creates an object based on the id of each element
+
+        :param str file: Path to file of json to read
+
+        :return: object of data read from json file
+
+        :rtype: object
+        """
+
         try:
             with io.open(os.path.join(self._PATH, file), encoding="utf8") as f:
                 return {u["id"]: u for u in json.load(f)}
