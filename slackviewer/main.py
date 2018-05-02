@@ -18,14 +18,6 @@ def configure_app(app, archive, debug):
     path = extract_archive(archive)
     reader = Reader(path)
 
-    top = flask._app_ctx_stack
-    top.channels = reader.compile_channels()
-    top.groups = reader.compile_groups()
-    top.dms = reader.compile_dm_messages()
-    top.dm_users = reader.compile_dm_users()
-    top.mpims = reader.compile_mpim_messages()
-    top.mpim_users = reader.compile_mpim_users()
-
 
 @click.command()
 @click.option('-p', '--port', default=envvar('SEV_PORT', '5000'),
@@ -50,7 +42,7 @@ def main(port, archive, ip, no_browser, test, debug):
     configure_app(app, archive, debug)
 
     if not no_browser and not test:
-        webbrowser.open("http://{}:{}".format(ip, port))
+        webbrowser.open("http://{}:{}/channel".format(ip, port))
 
     if not test:
         app.run(
