@@ -9,9 +9,6 @@ app = flask.Flask(
     template_folder="templates",
     static_folder="static"
 )
-app.config["UPLOAD_FOLDER"] = "archives"
-app.config["SECRET_KEY"] = 'Gh!iCn2U8^S*lnmTlhhp7TupF8vrnx12'
-app.config["DEBUG"] = True
 
 reader = Reader()
 

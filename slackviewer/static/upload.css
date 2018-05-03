@@ -57,4 +57,14 @@ body {
   margin-top: 16px;
   padding: 11px 30px 12px;
   border: none;
+
+}
+
+.container form .submit:hover {
+  cursor: pointer;
+  background-color: #393f9e;
+}
+
+.container form .submit:active, :focus {
+  outline: none
 }

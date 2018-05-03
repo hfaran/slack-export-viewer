@@ -5,7 +5,7 @@ import flask
 
 from slackviewer.app import app
 from slackviewer.archive import extract_archive
-from slackviewer.reader import Reader
+from slackviewer.app import reader
 from slackviewer.utils.click import envvar, flag_ennvar
 
 
@@ -14,9 +14,11 @@ def configure_app(app, archive, debug):
     if app.debug:
         print("WARNING: DEBUG MODE IS ENABLED!")
     app.config["PROPAGATE_EXCEPTIONS"] = True
+    app.config["UPLOAD_FOLDER"] = "archives"
 
     path = extract_archive(archive)
-    reader = Reader(path)
+    reader.set_path(path)
+    reader.get_all_messages()
 
 
 @click.command()
