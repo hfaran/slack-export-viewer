@@ -90,6 +90,16 @@ Commands:
   clean  Cleans up any temporary files (including...
 ```
 
+## Deployment
+
+If for any reason you need to use this tool on a server (maybe for your HR manager to easily use) you can build and deploy a docker image.
+
+Build
+`docker build -t slack-export-viewer .`
+
+Run
+`docker run -p 5000:5000 -d slack-export-viewer`
+
 ### Examples
 
 ```

@@ -1,11 +1,9 @@
 import webbrowser
 
 import click
-import flask
 
-from slackviewer.app import app
+from slackviewer.app import app, reader
 from slackviewer.archive import extract_archive
-from slackviewer.app import reader
 from slackviewer.utils.click import envvar, flag_ennvar
 
 

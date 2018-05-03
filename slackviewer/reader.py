@@ -22,6 +22,9 @@ class Reader(object):
     ##################
 
     def get_all_messages(self):
+        """
+        This method is used to call all of the compile methods at once.
+        """
         self.compile_channels()
         self.compile_groups()
         self.compile_dm_messages()
@@ -30,6 +33,9 @@ class Reader(object):
         self.compile_mpim_users()
 
     def set_path(self, path):
+        """
+        Sets the _PATH and readers the users json file to get the user data
+        """
         self._PATH = path
         with io.open(os.path.join(self._PATH, "users.json"), encoding="utf8") as f:
             self.__USER_DATA = {u["id"]: u for u in json.load(f)}
