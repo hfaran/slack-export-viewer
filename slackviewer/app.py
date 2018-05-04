@@ -10,6 +10,9 @@ app = flask.Flask(
     static_folder="static"
 )
 
+app.config["UPLOAD_FOLDER"] = "archives"
+app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # 50 MB limit
+
 reader = Reader()
 
 # these functions only fire when the route is navigated to
