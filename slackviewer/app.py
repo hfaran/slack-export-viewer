@@ -16,6 +16,8 @@ reader = Reader()
 
 @app.route("/channel/<name>/")
 def channel_name(name):
+    if not hasattr(reader, 'channels'):
+        return flask.render_template("404.html")
     messages = reader.channels[name]
     channels = list(reader.channels.keys())
     groups = list(reader.groups.keys())
@@ -32,6 +34,8 @@ def channel_name(name):
 
 @app.route("/group/<name>/")
 def group_name(name):
+    if not hasattr(reader, 'channels'):
+        return flask.render_template("404.html")
     messages = reader.groups[name]
     channels = list(reader.channels.keys())
     groups = list(reader.groups.keys())
@@ -48,6 +52,8 @@ def group_name(name):
 
 @app.route("/dm/<id>/")
 def dm_id(id):
+    if not hasattr(reader, 'channels'):
+        return flask.render_template("404.html")
     messages = reader.dms[id]
     channels = list(reader.channels.keys())
     groups = list(reader.groups.keys())
@@ -64,6 +70,8 @@ def dm_id(id):
 
 @app.route("/mpim/<name>/")
 def mpim_name(name):
+    if reader.channels is None:
+        return flask.render_template("404.html")
     messages = reader.mpims[name]
     channels = list(reader.channels.keys())
     groups = list(reader.groups.keys())
@@ -109,11 +117,14 @@ def upload():
             reader.get_all_messages()
             return redirect(url_for("index"))
 
+    reader.reset()
     return flask.render_template("upload.html", reader=reader)
 
 
 @app.route("/channel/")
 def index():
+    if not hasattr(reader, 'channels'):
+        return flask.render_template("404.html")
     channels = list(reader.channels.keys())
     if "general" in channels:
         return channel_name("general")

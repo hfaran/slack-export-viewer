@@ -21,6 +21,16 @@ class Reader(object):
     # Public Methods #
     ##################
 
+    def reset(self):
+        self.channels = None
+        self.groups = None
+        self.dms = None
+        self.dm_users = None
+        self.mpims = None
+        self.mpim_users = None
+        self._PATH = ''
+        self.__USER_DATA = None
+
     def get_all_messages(self):
         """
         This method is used to call all of the compile methods at once.
