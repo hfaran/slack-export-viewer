@@ -13,6 +13,7 @@ def configure_app(app, archive, debug):
         print("WARNING: DEBUG MODE IS ENABLED!")
     app.config["PROPAGATE_EXCEPTIONS"] = True
     app.config["UPLOAD_FOLDER"] = "archives"
+    app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # 50 MB limit
 
     path = extract_archive(archive)
     reader.set_path(path)
