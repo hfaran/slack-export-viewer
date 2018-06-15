@@ -171,7 +171,7 @@ class Reader(object):
                 continue
 
             for day in sorted(day_files):
-                with io.open(os.path.join(self._PATH, day)) as f:
+                with io.open(os.path.join(self._PATH, day), encoding="utf8") as f:
                     # loads all messages
                     day_messages = json.load(f)
                     messages.extend([Message(self.__USER_DATA, data, d) for d in day_messages])

@@ -31,8 +31,11 @@ class Message(object):
             if "username" in self._message:
                 return self._message["username"]
             # If that fails to, it's probably USLACKBOT...
-            elif "user" in self._message:
-                return self.user_id
+            if "user" in self._message:
+                if self.user_id == "USLACKBOT":
+                    return "slackbot"
+                else:
+                    return self.user_id
             elif "bot_id" in self._message:
                 return self._message["bot_id"]
             else:
