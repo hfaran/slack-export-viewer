@@ -1,3 +1,4 @@
+import os
 import flask
 from flask import request, redirect, url_for, flash
 from slackviewer.archive import extract_archive
@@ -11,7 +12,7 @@ app = flask.Flask(
 )
 
 app.config["UPLOAD_FOLDER"] = "archives"
-app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # 50 MB limit
+app.config['MAX_CONTENT_LENGTH'] = 2 * 1024 * 1024 * 1024  # 2 GB limit
 
 reader = Reader()
 
@@ -113,8 +114,8 @@ def upload():
             flash("No selected file")
             return redirect(request.url)
         if file and allowed_file(file.filename):
-            print("made it and it should extract the archive here")
-            filename = file.filename
+            print(os.path.abspath(file.filename))
+            filename = os.path.abspath(file.filename) # change this to full file path for where it gets uploaded to
             archive_path = extract_archive(filename)
             reader.set_path(archive_path)
             reader.get_all_messages()
