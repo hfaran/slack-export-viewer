@@ -61,6 +61,7 @@ def extract_archive(filepath):
         print("{} already exists".format(extracted_path))
     else:
         # Extract zip
+        print("extracting archive...")
         with zipfile.ZipFile(filepath) as zip:
             print("{} extracting to {}...".format(filepath, extracted_path))
             zip.extractall(path=extracted_path)
@@ -68,6 +69,7 @@ def extract_archive(filepath):
         print("{} extracted to {}".format(filepath, extracted_path))
 
         # Add additional file with archive info
+        print("creating meta data for next time...")
         create_archive_info(filepath, extracted_path, archive_sha)
 
     return extracted_path
@@ -100,4 +102,5 @@ def create_archive_info(filepath, extracted_path, archive_sha=None):
     ) as f:
         s = json.dumps(archive_info, ensure_ascii=False)
         s = to_unicode(s)
+        print("writing meta data to file...")
         f.write(s)

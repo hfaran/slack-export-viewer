@@ -52,6 +52,7 @@ class Reader(object):
 
     def compile_channels(self):
 
+        print("getting channels...")
         channel_data = self._read_from_json("channels.json")
         channel_names = [c["name"] for c in channel_data.values()]
 
@@ -59,12 +60,15 @@ class Reader(object):
 
     def compile_groups(self):
 
+        print("getting groups...")
         group_data = self._read_from_json("groups.json")
         group_names = [c["name"] for c in group_data.values()]
 
         self.groups = self._create_messages(group_names, group_data)
 
     def compile_dm_messages(self):
+
+        print("getting dm messages...")
         # Gets list of dm objects with dm ID and array of members ids
         dm_data = self._read_from_json("dms.json")
         dm_ids = [c["id"] for c in dm_data.values()]
@@ -87,6 +91,8 @@ class Reader(object):
 
         """
 
+        print("getting dm users...")
+
         dm_data = self._read_from_json("dms.json")
         dms = dm_data.values()
         all_dms_users = []
@@ -101,6 +107,8 @@ class Reader(object):
 
 
     def compile_mpim_messages(self):
+
+        print("getting mpim messages...")
 
         mpim_data = self._read_from_json("mpims.json")
         mpim_names = [c["name"] for c in mpim_data.values()]
@@ -120,6 +128,8 @@ class Reader(object):
         }
 
         """
+
+        print("getting mpim users...")
 
         mpim_data = self._read_from_json("mpims.json")
         mpims = [c for c in mpim_data.values()]

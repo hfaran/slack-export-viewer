@@ -6,4 +6,4 @@ EXPOSE 5000
 
 RUN pip install -r requirements.txt
 
-CMD gunicorn --timeout 600 -c config.py wsgi
+CMD gunicorn --timeout 0 -c config.py wsgi
