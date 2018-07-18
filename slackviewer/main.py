@@ -1,4 +1,5 @@
 import webbrowser
+import time,sys
 
 import click
 
@@ -12,7 +13,7 @@ def configure_app(app, archive, debug):
     if app.debug:
         print("WARNING: DEBUG MODE IS ENABLED!")
     app.config["PROPAGATE_EXCEPTIONS"] = True
-
+    
     path = extract_archive(archive)
     reader.set_path(path)
     reader.get_all_messages()
@@ -26,6 +27,7 @@ def configure_app(app, archive, debug):
               help="Path to your Slack export archive (.zip file or directory)")
 @click.option('-I', '--ip', default=envvar('SEV_IP', 'localhost'),
               type=click.STRING, help="Host IP to serve your content on")
+@click.option('-U', '--upload', is_flag=True, help="Start server to upload your zip")       
 @click.option('--no-browser', is_flag=True,
               default=flag_ennvar("SEV_NO_BROWSER"),
               help="If you do not want a browser to open "
@@ -34,9 +36,17 @@ def configure_app(app, archive, debug):
               help="Runs in 'test' mode, i.e., this will do an archive extract, but will not start the server,"
                    " and immediately quit.")
 @click.option('--debug', is_flag=True, default=flag_ennvar("FLASK_DEBUG"))
-def main(port, archive, ip, no_browser, test, debug):
-    if not archive:
+def main(port, archive, ip, upload, no_browser, test, debug):
+    if not archive and not upload:
         raise ValueError("Empty path provided for archive")
+
+    if upload:
+        webbrowser.open("http://{}:{}".format(ip, port))
+        app.run(
+            host=ip,
+            port=port
+        )
+        return
 
     configure_app(app, archive, debug)
 
