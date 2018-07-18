@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+      <meta charset="UTF-8">
+      <title>Slack Export - #{{ name }}</title>
+      <link rel=stylesheet type=text/css
+            href="{{ url_for('static', filename='upload.css') }}">
+  </head>
+  <body>
+    <div class="image">
+      <img src="{{ url_for('static', filename='assets/images/Slack_Mark_Web.png') }}" alt="Slack">
+    </div>
+    <div class="container">
+      <h1>Upload an archive</h1>
+      <h5>It has to be a .zip file</h5>
+      <form enctype="multipart/form-data" method="post">
+        <input type="file" name="archive_file">
+        <input type="submit" class="submit" value="Upload">
+      </form>
+
+    </div>
+  </body>
+</html>

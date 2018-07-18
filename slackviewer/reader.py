@@ -10,39 +10,72 @@ class Reader(object):
     Reader object will read all of the archives' data from the json files
     """
 
-    def __init__(self, PATH):
-        self._PATH = PATH
-        # TODO: Make sure this works
-        with io.open(os.path.join(self._PATH, "users.json"), encoding="utf8") as f:
-            self.__USER_DATA = {u["id"]: u for u in json.load(f)}
+    def __init__(self, PATH=''):
+        if not PATH == '':
+            self._PATH = PATH
+            with io.open(os.path.join(self._PATH, "users.json"), encoding="utf8") as f:
+                self.__USER_DATA = {u["id"]: u for u in json.load(f)}
 
 
     ##################
     # Public Methods #
     ##################
 
+    def reset(self):
+        self.channels = None
+        self.groups = None
+        self.dms = None
+        self.dm_users = None
+        self.mpims = None
+        self.mpim_users = None
+        self._PATH = ''
+        self.__USER_DATA = None
+
+    def get_all_messages(self):
+        """
+        This method is used to call all of the compile methods at once.
+        """
+        self.compile_channels()
+        self.compile_groups()
+        self.compile_dm_messages()
+        self.compile_dm_users()
+        self.compile_mpim_messages()
+        self.compile_mpim_users()
+
+    def set_path(self, path):
+        """
+        Sets the _PATH and readers the users json file to get the user data
+        """
+        self._PATH = path
+        with io.open(os.path.join(self._PATH, "users.json"), encoding="utf8") as f:
+            self.__USER_DATA = {u["id"]: u for u in json.load(f)}
+
     def compile_channels(self):
 
+        print("getting channels...")
         channel_data = self._read_from_json("channels.json")
         channel_names = [c["name"] for c in channel_data.values()]
 
-        return self._create_messages(channel_names, channel_data)
+        self.channels = self._create_messages(channel_names, channel_data)
 
     def compile_groups(self):
 
+        print("getting groups...")
         group_data = self._read_from_json("groups.json")
         group_names = [c["name"] for c in group_data.values()]
 
-        return self._create_messages(group_names, group_data)
+        self.groups = self._create_messages(group_names, group_data)
 
     def compile_dm_messages(self):
+
+        print("getting dm messages...")
         # Gets list of dm objects with dm ID and array of members ids
         dm_data = self._read_from_json("dms.json")
         dm_ids = [c["id"] for c in dm_data.values()]
 
         # True is passed here to let the create messages function know that
         # it is dm data being passed to it
-        return self._create_messages(dm_ids, dm_data, True)
+        self.dms = self._create_messages(dm_ids, dm_data, True)
 
     def compile_dm_users(self):
         """
@@ -58,6 +91,8 @@ class Reader(object):
 
         """
 
+        print("getting dm users...")
+
         dm_data = self._read_from_json("dms.json")
         dms = dm_data.values()
         all_dms_users = []
@@ -68,15 +103,17 @@ class Reader(object):
                 dm_members = {"id": dm["id"], "users": [self.__USER_DATA[m] for m in dm["members"]]}
                 all_dms_users.append(dm_members)
 
-        return all_dms_users
+        self.dm_users = all_dms_users
 
 
     def compile_mpim_messages(self):
 
+        print("getting mpim messages...")
+
         mpim_data = self._read_from_json("mpims.json")
         mpim_names = [c["name"] for c in mpim_data.values()]
 
-        return self._create_messages(mpim_names, mpim_data)
+        self.mpims = self._create_messages(mpim_names, mpim_data)
 
     def compile_mpim_users(self):
         """
@@ -92,6 +129,8 @@ class Reader(object):
 
         """
 
+        print("getting mpim users...")
+
         mpim_data = self._read_from_json("mpims.json")
         mpims = [c for c in mpim_data.values()]
         all_mpim_users = []
@@ -100,7 +139,7 @@ class Reader(object):
             mpim_members = {"name": mpim["name"], "users": [self.__USER_DATA[m] for m in mpim["members"]]}
             all_mpim_users.append(mpim_members)
 
-        return all_mpim_users
+        self.mpim_users = all_mpim_users
 
 
     ###################

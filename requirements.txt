@@ -2,3 +2,4 @@ click
 flask
 markdown2
 emoji
+gunicorn
