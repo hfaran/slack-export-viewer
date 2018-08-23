@@ -4,6 +4,7 @@ import glob
 import io
 
 from slackviewer.message import Message
+from slackviewer.user import User
 
 class Reader(object):
     """
@@ -14,7 +15,7 @@ class Reader(object):
         self._PATH = PATH
         # TODO: Make sure this works
         with io.open(os.path.join(self._PATH, "users.json"), encoding="utf8") as f:
-            self.__USER_DATA = {u["id"]: u for u in json.load(f)}
+            self.__USER_DATA = {u["id"]: User(u) for u in json.load(f)}
 
 
     ##################

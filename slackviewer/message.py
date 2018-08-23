@@ -9,6 +9,9 @@ import markdown2
 
 
 class Message(object):
+
+    _DEFAULT_USER_ICON_SIZE = 72
+
     def __init__(self, USER_DATA, CHANNEL_DATA, message):
         self.__USER_DATA = USER_DATA
         self.__CHANNEL_DATA = CHANNEL_DATA
@@ -23,9 +26,13 @@ class Message(object):
         return self._message["user"]
 
     @property
+    def user(self):
+        return self.__USER_DATA[self.user_id]
+
+    @property
     def username(self):
         try:
-            return self.__USER_DATA[self._message["user"]]["name"]
+            return self.user.display_name
         except KeyError:
             # In case this is a bot or something, we fallback to "username"
             if "username" in self._message:
@@ -92,7 +99,7 @@ class Message(object):
     @property
     def img(self):
         try:
-            return self.__USER_DATA[self._message["user"]]["profile"]["image_72"]
+            return self.user.image_url(self._DEFAULT_USER_ICON_SIZE)
         except KeyError:
             return ""
 
@@ -108,10 +115,10 @@ class Message(object):
         message = message.replace("<!channel>", "@channel")
         message = self._slack_to_accepted_emoji(message)
         # Handle "<@U0BM1CGQY|calvinchanubc> has joined the channel"
-        message = re.sub(r"<@U\d\w+\|[A-Za-z0-9.-_]+>",
+        message = re.sub(r"<@U\w+\|[A-Za-z0-9.-_]+>",
                          self._sub_annotated_mention, message)
         # Handle "<@U0BM1CGQY>"
-        message = re.sub(r"<@U\d\w+>", self._sub_mention, message)
+        message = re.sub(r"<@U\w+>", self._sub_mention, message)
         # Handle links
         message = re.sub(
             # http://stackoverflow.com/a/1547940/1798683
@@ -177,7 +184,7 @@ class Message(object):
     def _sub_mention(self, matchobj):
         try:
             return "@{}".format(
-                self.__USER_DATA[matchobj.group(0)[2:-1]]["name"]
+                self.__USER_DATA[matchobj.group(0)[2:-1]].display_name
             )
         except KeyError:
             # In case this identifier is not in __USER_DATA, we fallback to identifier
