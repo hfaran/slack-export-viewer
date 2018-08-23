@@ -152,27 +152,19 @@ class Message(object):
                 # We still have nice bold and italics formatting though
                 #  because we pre-process underscores into asterisks. :)
                 "code-friendly",
+                # This gives us <pre> and <code> tags for ```-fenced blocks
                 "fenced-code-blocks",
                 "pyshell"
             ]
         ).strip()
-        # markdown2 likes to wrap everything in <p> tags
-        if message.startswith("<p>") and message.endswith("</p>"):
-            message = message[3:-4]
 
         # Newlines to breaks
         # Special handling cases for lists
         message = message.replace("\n\n<ul>", "<ul>")
         message = message.replace("\n<li>", "<li>")
-        # Indiscriminately replace everything else
-        message = message.replace("\n", "<br />")
 
         # Introduce unicode emoji
         message = emoji.emojize(message, use_aliases=True)
-
-        # Adding <pre> tag for preformated code
-        message = re.sub(r"```(.*?)```", r'<pre style="background-color: #E6E5DF; white-space: pre-wrap;">\1</pre>',
-                         message)
 
         return message
 
