@@ -7,6 +7,7 @@
           href="{{ url_for('static', filename='viewer.css') }}">
 </head>
 <body>
+<div id="slack-archive-viewer">
 <div id="sidebar">
     <h3 id="channel-title">Public Channels</h3>
     <ul class="list" id="channel-list">
@@ -66,6 +67,7 @@
         </div>
         <br/>
     {% endfor %}
+</div>
 </div>
 
 <script>

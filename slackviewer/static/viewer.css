@@ -7,6 +7,11 @@ html {
 body {
     padding: 0;
     margin: 0;
+}
+
+#slack-archive-viewer {
+    padding: 0;
+    margin: 0;
     height: 100vh;
     overflow: hidden;
 }
@@ -62,11 +67,11 @@ body {
     overflow-y: scroll;
 }
 
-.messages .message-container:first-child {
+.message-container:first-child {
   margin-top: 20px;
 }
 
-.messages img {
+.message-container img {
     background-color: rgb(248, 244, 240);
     width: 36px;
     height: 36px;
@@ -77,19 +82,19 @@ body {
     float: left;
 }
 
-.messages .time {
+.message-container .time {
     display: inline-block;
     color: rgb(200, 200, 200);
     margin-left: 0.5em;
 }
 
-.messages .username {
+.message-container .username {
     display: inline-block;
     font-weight: 600;
     line-height: 1;
 }
 
-.messages .message {
+.message-container .message {
     display: inline-block;
     vertical-align: top;
     line-height: 1;
@@ -105,7 +110,7 @@ body {
     white-space: pre-wrap;
 }
 
-.messages .message .msg {
+.message-container .message .msg {
     line-height: 1.5;
 }
 
