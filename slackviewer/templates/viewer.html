@@ -55,7 +55,7 @@
     </div>
     <div class="messages">
         {% for message in messages %}
-            <div class="message-container">
+            <div class="message-container{%if message.subtype %} {{message.subtype}}{%endif%}">
             <div id="{{ message.id }}">
                 <img src="{{ message.img }}"/>
                 <div class="message">

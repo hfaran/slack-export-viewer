@@ -107,6 +107,10 @@ class Message(object):
     def id(self):
         return self.time
 
+    @property
+    def subtype(self):
+        return self._message.get("subtype")
+
     ###################
     # Private Methods #
     ###################

@@ -114,6 +114,10 @@ body {
     line-height: 1.5;
 }
 
+.channel_join .msg, .channel_topic .msg {
+    font-style: italic;
+}
+
 .list {
     margin: 0;
     padding: 0;
