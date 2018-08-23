@@ -1,6 +1,6 @@
 @import url('https://fonts.googleapis.com/css?family=Lato:400,900');
 
-* {
+html {
     font-family: 'Lato', sans-serif;
 }
 
@@ -94,6 +94,15 @@ body {
     vertical-align: top;
     line-height: 1;
     width: calc(100% - 3em);
+}
+
+.message-container .msg p {
+    white-space: pre-wrap;
+}
+
+.message-container .msg pre {
+    background-color: #E6E5DF;
+    white-space: pre-wrap;
 }
 
 .messages .message .msg {
