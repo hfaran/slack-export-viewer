@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+{% from "util.html" import render_message %}
 <head>
     <meta charset="UTF-8">
     <title>Slack Export - #{{ name }}</title>
@@ -55,17 +56,7 @@
     </div>
     <div class="messages">
         {% for message in messages %}
-            <div class="message-container{%if message.subtype %} {{message.subtype}}{%endif%}">
-            <div id="{{ message.id }}">
-                <img src="{{ message.img }}"/>
-                <div class="message">
-                    <div class="username">{{ message.username }}</div>
-                    <a href="#{{ message.id}}"><div class="time">{{ message.time }}</div></a>
-                    <div class="msg">{{ message.msg|safe }}</div>
-                </div>
-            </div>
-            </div>
-            <br/>
+            {{render_message(message)}}
         {% endfor %}
     </div>
 </div>

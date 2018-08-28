@@ -55,46 +55,24 @@ class Message(object):
         return str(datetime.datetime.fromtimestamp(tsepoch)).split('.')[0]
 
     @property
-    def msg(self):
-        message = []
+    def attachments(self):
+        return [ LinkAttachment("LINK", entry)
+            for entry in self._message.get("attachments", []) ]
 
+    @property
+    def files(self):
+        if "file" in self._message: # this is probably an outdated case
+            allfiles = [self._message["file"]]
+        else:
+            allfiles = self._message.get("files", [])
+        return [ LinkAttachment("FILE", entry) for entry in allfiles ]
+
+    @property
+    def msg(self):
         text = self._message.get("text")
         if text:
             text = self._render_text(text)
-            message.append(text)
-
-        attachments = self._message.get("attachments", [])
-        if attachments is not None:
-            for att in attachments:
-                message.append("")
-                if "pretext" in att:
-                    pretext = self._render_text(att["pretext"].strip())
-                    message.append(pretext)
-                if "title" in att:
-                    title = self._render_text("**{}**".format(
-                        att["title"].strip()
-                    ))
-                    message.append(title)
-                if "text" in att:
-                    text = self._render_text(att["text"].strip())
-                    message.append(text)
-
-        file_link = self._message.get("file", {})
-        # We would like to show file if it is image type
-        if (
-            file_link and
-            "url_private" in file_link and
-            "mimetype" in file_link and
-            file_link["mimetype"].split('/')[0] == 'image'
-        ):
-            html = "<br><a href=\"{url}\"><img src=\"{url}\" height=\"200\"></a><br>" \
-                .format(url=file_link["url_private"])
-            message.append(html)
-
-        if message:
-            if not message[0].strip():
-                message = message[1:]
-        return "<br />".join(message).strip()
+        return text
 
     @property
     def img(self):
@@ -241,3 +219,51 @@ class Message(object):
 
     def _sub_bold(self, matchobj):
         return self.__em_strong(matchobj, "strong")
+
+
+class LinkAttachment(object):
+    """
+    Wrapper class for entries in either the "files" or "attachments" arrays.
+    """
+
+    _DEFAULT_THUMBNAIL_SIZE = 360
+
+    def __init__(self, attachment_type, raw):
+        self._type = attachment_type
+        self._raw = raw
+
+    def __getitem__(self, key):
+        return self._raw[key]
+
+    def thumbnail(self, size=None):
+        size = size if size else self._DEFAULT_THUMBNAIL_SIZE
+        # LINK type
+        if "image_url" in self._raw:
+            logging.debug("image_url path")
+            return {
+                "src": self._raw["image_url"],
+                "width": self._raw.get("image_width"),
+                "height": self._raw.get("image_height"),
+            }
+        else: # FILE type
+            thumb_key = "thumb_{}".format(size)
+            logging.debug("thumb path" + thumb_key)
+            if thumb_key in self._raw:
+                return {
+                    "src": self._raw[thumb_key],
+                    "width": self._raw.get(thumb_key + "_w", size),
+                    "height": self._raw.get(thumb_key + "_h", size),
+                }
+            else:
+                pass # thumb_pdf or possibly thumb_${filetype}?
+
+    @property
+    def is_image(self):
+        return self._raw.get("mimetype", "").startswith("image/")
+
+    @property
+    def link(self):
+        if "from_url" in self._raw:
+            return self._raw["from_url"]
+        else:
+            return self._raw.get("url_private")

@@ -67,11 +67,15 @@ body {
     overflow-y: scroll;
 }
 
+.message-container {
+    clear: left;
+    min-height: 56px; // height of image plus 20px padding
+}
 .message-container:first-child {
   margin-top: 20px;
 }
 
-.message-container img {
+.message-container .user_icon {
     background-color: rgb(248, 244, 240);
     width: 36px;
     height: 36px;
@@ -94,6 +98,11 @@ body {
     line-height: 1;
 }
 
+.message-container .user-email {
+    font-weight: normal;
+    font-style: italic;
+}
+
 .message-container .message {
     display: inline-block;
     vertical-align: top;
@@ -112,6 +121,15 @@ body {
 
 .message-container .message .msg {
     line-height: 1.5;
+}
+
+.message-container .message-attachment {
+    padding-left: 5px;
+    border-left: 2px gray solid;
+}
+
+.message-container .message-attachment .service-name {
+    color: #999999;
 }
 
 .channel_join .msg, .channel_topic .msg {
@@ -164,4 +182,8 @@ a:hover {
 
 .close {
   display: none;
+}
+
+@media screen {
+    .print-only { display: none }
 }
