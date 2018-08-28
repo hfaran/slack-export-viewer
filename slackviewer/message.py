@@ -248,14 +248,25 @@ class LinkAttachment(object):
         else: # FILE type
             thumb_key = "thumb_{}".format(size)
             logging.debug("thumb path" + thumb_key)
+            if thumb_key not in self._raw:
+                # let's try some fallback logic
+                thumb_key = "thumb_{}".format(self._raw.get("filetype"))
+                if thumb_key not in self._raw:
+                    # pick the first one that shows up in the iterator
+                    candidates = [k for k in self._raw.keys()
+                        if k.startswith("thumb_") and not k.endswith(("_w","_h"))]
+                    if candidates:
+                        thumb_key = candidates[0]
+                        logging.info("Fell back to thumbnail key %s for [%s]",
+                            thumb_key, self._raw.get("title"))
             if thumb_key in self._raw:
                 return {
                     "src": self._raw[thumb_key],
-                    "width": self._raw.get(thumb_key + "_w", size),
-                    "height": self._raw.get(thumb_key + "_h", size),
+                    "width": self._raw.get(thumb_key + "_w"),
+                    "height": self._raw.get(thumb_key + "_h"),
                 }
             else:
-                pass # thumb_pdf or possibly thumb_${filetype}?
+                logging.info("No thumbnail found for [%s]", self._raw.get("title"))
 
     @property
     def is_image(self):
