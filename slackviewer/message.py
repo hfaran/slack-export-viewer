@@ -112,7 +112,7 @@ class Message(object):
         message = re.sub(r"(^| )#[A-Za-z0-9\.\-\_]+( |$)",
                          self._sub_hashtag, message)
         # Handle channel references
-        message = re.sub(r"<#C0\w+>", self._sub_channel_ref, message)
+        message = re.sub(r"<#C\w+>", self._sub_channel_ref, message)
         # Handle italics (convert * * to ** **)
         message = re.sub(r"(^| )\*[A-Za-z0-9\-._ ]+\*( |$)",
                          self._sub_bold, message)
