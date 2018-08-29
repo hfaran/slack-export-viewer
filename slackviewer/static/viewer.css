@@ -132,8 +132,17 @@ body {
     color: #999999;
 }
 
-.channel_join .msg, .channel_topic .msg {
+.message-container .icon {
+    max-width: 10px;
+}
+
+.channel_join .msg, .channel_topic .msg,
+.bot_add .msg, .app_conversation_join .msg {
     font-style: italic;
+}
+
+.attachment-footer {
+    font-size: small;
 }
 
 .list {
