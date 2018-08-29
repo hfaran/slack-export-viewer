@@ -6,6 +6,7 @@ import re
 
 import emoji
 import markdown2
+from slackviewer.user import User
 
 
 class Message(object):
@@ -13,8 +14,7 @@ class Message(object):
     _DEFAULT_USER_ICON_SIZE = 72
 
     def __init__(self, USER_DATA, CHANNEL_DATA, message):
-        self.__USER_DATA = USER_DATA
-        self.__CHANNEL_DATA = CHANNEL_DATA
+        self._formatter = SlackFormatter(USER_DATA, CHANNEL_DATA)
         self._message = message
 
     ##############
@@ -23,11 +23,17 @@ class Message(object):
 
     @property
     def user_id(self):
-        return self._message["user"]
+        if "user" in self._message:
+            return self._message["user"]
+        elif "bot_id" in self._message:
+            return self._message["bot_id"]
+        else:
+            logging.error("No user ID on %s", self._message)
+
 
     @property
     def user(self):
-        return self.__USER_DATA[self.user_id]
+        return self._formatter.find_user(self._message)
 
     @property
     def username(self):
@@ -56,7 +62,7 @@ class Message(object):
 
     @property
     def attachments(self):
-        return [ LinkAttachment("LINK", entry)
+        return [ LinkAttachment("ATTACHMENT", entry, self._formatter)
             for entry in self._message.get("attachments", []) ]
 
     @property
@@ -65,13 +71,13 @@ class Message(object):
             allfiles = [self._message["file"]]
         else:
             allfiles = self._message.get("files", [])
-        return [ LinkAttachment("FILE", entry) for entry in allfiles ]
+        return [ LinkAttachment("FILE", entry, self._formatter) for entry in allfiles ]
 
     @property
     def msg(self):
         text = self._message.get("text")
         if text:
-            text = self._render_text(text)
+            text = self._formatter.render_text(text)
         return text
 
     @property
@@ -89,11 +95,39 @@ class Message(object):
     def subtype(self):
         return self._message.get("subtype")
 
-    ###################
-    # Private Methods #
-    ###################
 
-    def _render_text(self, message):
+class SlackFormatter(object):
+    "This formats messages and provides access to workspace-wide data (user and channel metadata)."
+
+    def __init__(self, USER_DATA, CHANNEL_DATA):
+        self.__USER_DATA = USER_DATA
+        self.__CHANNEL_DATA = CHANNEL_DATA
+
+    def find_user(self, message):
+        if message.get("user") == "USLACKBOT":
+            return User({"name":"slackbot"})
+        if message.get("subtype", "").startswith("bot_") and message["bot_id"] not in self.__USER_DATA:
+            bot_id = message["bot_id"]
+            logging.debug("bot addition for %s", bot_id)
+            if "bot_link" in message:
+                (bot_url, bot_name) = message["bot_link"].strip("<>").split("|", 1)
+            elif "username" in message:
+                bot_name = message["username"]
+                bot_url = None
+
+            self.__USER_DATA[bot_id] = User({
+                "user": bot_id,
+                "real_name": bot_name,
+                "bot_url": bot_url,
+                "is_bot": True,
+                "is_app_user": True
+            })
+        user_id = message.get("user") or message.get("bot_id")
+        if user_id in self.__USER_DATA:
+            return self.__USER_DATA.get(user_id)
+        logging.error("unable to find user in %s", message)
+
+    def render_text(self, message, process_markdown=True):
         message = message.replace("<!channel>", "@channel")
         message = self._slack_to_accepted_emoji(message)
         # Handle "<@U0BM1CGQY|calvinchanubc> has joined the channel"
@@ -113,32 +147,32 @@ class Message(object):
                          self._sub_hashtag, message)
         # Handle channel references
         message = re.sub(r"<#C\w+>", self._sub_channel_ref, message)
-        # Handle italics (convert * * to ** **)
-        message = re.sub(r"(^| )\*[A-Za-z0-9\-._ ]+\*( |$)",
-                         self._sub_bold, message)
-        # Handle italics (convert _ _ to * *)
-        message = re.sub(r"(^| )_[A-Za-z0-9\-._ ]+_( |$)",
-                         self._sub_italics, message)
 
-        # Escape any remaining hash characters to save them from being turned
-        #  into headers by markdown2
-        message = message.replace("#", "\\#")
-
-        message = markdown2.markdown(
-            message,
-            extras=[
-                "cuddled-lists",
-                # Disable parsing _ and __ for em and strong
-                # This prevents breaking of emoji codes like :stuck_out_tongue
-                #  for which the underscores it liked to mangle.
-                # We still have nice bold and italics formatting though
-                #  because we pre-process underscores into asterisks. :)
-                "code-friendly",
-                # This gives us <pre> and <code> tags for ```-fenced blocks
-                "fenced-code-blocks",
-                "pyshell"
-            ]
-        ).strip()
+        if process_markdown:
+            # Handle bold (convert * * to ** **)
+            message = re.sub(r"(^| )\*[A-Za-z0-9\-._ ]+\*( |$)",
+                             self._sub_bold, message)
+            # Handle italics (convert _ _ to * *)
+            message = re.sub(r"(^| )_[A-Za-z0-9\-._ ]+_( |$)",
+                             self._sub_italics, message)
+            # Escape any remaining hash characters to save them from being turned
+            #  into headers by markdown2
+            message = message.replace("#", "\\#")
+            message = markdown2.markdown(
+                message,
+                extras=[
+                    "cuddled-lists",
+                    # Disable parsing _ and __ for em and strong
+                    # This prevents breaking of emoji codes like :stuck_out_tongue
+                    #  for which the underscores it liked to mangle.
+                    # We still have nice bold and italics formatting though
+                    #  because we pre-process underscores into asterisks. :)
+                    "code-friendly",
+                    # This gives us <pre> and <code> tags for ```-fenced blocks
+                    "fenced-code-blocks",
+                    "pyshell"
+                ]
+            ).strip()
 
         # Newlines to breaks
         # Special handling cases for lists
@@ -228,16 +262,24 @@ class LinkAttachment(object):
 
     _DEFAULT_THUMBNAIL_SIZE = 360
 
-    def __init__(self, attachment_type, raw):
+    # Fields that need to be processed for markup (and possibly markdown)
+    _TEXT_FIELDS = {"pretext", "text", "footer"}
+
+    def __init__(self, attachment_type, raw, formatter):
         self._type = attachment_type
         self._raw = raw
+        self._formatter = formatter
 
     def __getitem__(self, key):
-        return self._raw[key]
+        content = self._raw[key]
+        if content and key in self._TEXT_FIELDS:
+            process_markdown = (key in self._raw.get("mrkdwn_in", []))
+            content = self._formatter.render_text(content, process_markdown)
+        return content
 
     def thumbnail(self, size=None):
         size = size if size else self._DEFAULT_THUMBNAIL_SIZE
-        # LINK type
+        # ATTACHMENT type
         if "image_url" in self._raw:
             logging.debug("image_url path")
             return {
@@ -278,3 +320,15 @@ class LinkAttachment(object):
             return self._raw["from_url"]
         else:
             return self._raw.get("url_private")
+
+    @property
+    def fields(self):
+        "Only present on attachments, not files--this abstraction isn't 100% awesome.'"
+        process_markdown = ("fields" in self._raw.get("mrkdwn_in", []))
+        fields = self._raw.get("fields", [])
+        if fields:
+            logging.debug("Rendering with markdown markdown %s for %s", process_markdown, fields)
+        return [
+            {"title": e["title"], "short": e["short"], "value": self._formatter.render_text(e["value"], process_markdown)}
+            for e in fields
+        ]
