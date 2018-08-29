@@ -1,4 +1,5 @@
 # User info wrapper object
+import logging
 
 class User(object):
     """
@@ -24,20 +25,30 @@ class User(object):
         for k in self._NAME_KEYS:
             if self._raw.get(k):
                 return self._raw[k]
-            if self._raw["profile"].get(k):
+            if "profile" in self._raw and self._raw["profile"].get(k):
                 return self._raw["profile"][k]
         return self._raw["name"]
 
     @property
     def email(self):
-        "Shortcut property for finding the e-mail address."
-        return self._raw["profile"]["email"]
+        "Shortcut property for finding the e-mail address or bot URL."
+        if "profile" in self._raw:
+            email = self._raw["profile"].get("email")
+        elif "bot_url" in self._raw:
+            email = self._raw["bot_url"]
+        else:
+            email = None
+        if not email:
+            logging.debug("No email found for %s", self._raw.get("name"))
+        return email
 
     def image_url(self, pixel_size=None):
         """
         Get the URL for the user icon in the desired pixel size, if it exists. If no
         size is supplied, give the URL for the full-size image.
         """
+        if "profile" not in self._raw:
+            return
         profile = self._raw["profile"]
         if (pixel_size):
             img_key = "image_%s" % pixel_size
