@@ -130,11 +130,10 @@ class SlackFormatter(object):
     def render_text(self, message, process_markdown=True):
         message = message.replace("<!channel>", "@channel")
         message = self._slack_to_accepted_emoji(message)
-        # Handle "<@U0BM1CGQY|calvinchanubc> has joined the channel"
-        message = re.sub(r"<@U\w+\|[A-Za-z0-9.-_]+>",
+
+        # Handle mentions of users, channels and bots (e.g "<@U0BM1CGQY|calvinchanubc> has joined the channel")
+        message = re.sub(r"<((?:#C|@[UB])\w+)(?:\|([A-Za-z0-9.-_]+))?>",
                          self._sub_annotated_mention, message)
-        # Handle "<@U0BM1CGQY>"
-        message = re.sub(r"<@U\w+>", self._sub_mention, message)
         # Handle links
         message = re.sub(
             # http://stackoverflow.com/a/1547940/1798683
@@ -145,8 +144,6 @@ class SlackFormatter(object):
         # Handle hashtags (that are meant to be hashtags and not headings)
         message = re.sub(r"(^| )#[A-Za-z][\w\.\-\_]+( |$)",
                          self._sub_hashtag, message)
-        # Handle channel references
-        message = re.sub(r"<#(C\w+)(?:|([^>]+))?>", self._sub_channel_ref, message)
 
         # Introduce unicode emoji
         message = emoji.emojize(message, use_aliases=True)
@@ -177,17 +174,20 @@ class SlackFormatter(object):
         message = message.replace(":simple_smile:", ":slightly_smiling_face:")
         return message
 
-    def _sub_mention(self, matchobj):
-        try:
-            return "@{}".format(
-                self.__USER_DATA[matchobj.group(0)[2:-1]].display_name
-            )
-        except KeyError:
-            # In case this identifier is not in __USER_DATA, we fallback to identifier
-            return matchobj.group(0)[2:-1]
-
     def _sub_annotated_mention(self, matchobj):
-        return "@{}".format((matchobj.group(0)[2:-1]).split("|")[1])
+        ref_id = matchobj.group(1)[1:]  # drop #/@ from the start, we don't care
+        annotation = matchobj.group(2)
+        if ref_id.startswith('C'):
+            mention_format = "<b>#{}</b>"
+            if not annotation:
+                channel = self.__CHANNEL_DATA.get(ref_id)
+                annotation = channel["name"] if channel else ref_id
+        else:
+            mention_format = "@{}"
+            if not annotation:
+                user = self.__USER_DATA.get(ref_id)
+                annotation = user.display_name if user else ref_id
+        return mention_format.format(annotation)
 
     def _sub_hyperlink(self, matchobj):
         compound = matchobj.group(0)[1:-1]
@@ -209,16 +209,6 @@ class SlackFormatter(object):
             text.strip(),
             ending_space
         )
-
-    def _sub_channel_ref(self, matchobj):
-        channel_id = matchobj.group(1)
-        try:
-            channel_name = self.__CHANNEL_DATA[channel_id]["name"]
-        except KeyError as e:
-            logging.error("A channel reference was detected but metadata "
-                          "not found in channels.json: {}".format(e))
-            channel_name = channel_id
-        return "<b>#{}</b>".format(channel_name)
 
 
 class LinkAttachment(object):
