@@ -148,26 +148,17 @@ class SlackFormatter(object):
         # Handle channel references
         message = re.sub(r"<#(C\w+)(?:|([^>]+))?>", self._sub_channel_ref, message)
 
+        # Introduce unicode emoji
+        message = emoji.emojize(message, use_aliases=True)
+
         if process_markdown:
             # Handle bold (convert * * to ** **)
-            message = re.sub(r"(^| )\*[A-Za-z0-9\-._ ]+\*( |$)",
-                             self._sub_bold, message)
-            # Handle italics (convert _ _ to * *)
-            message = re.sub(r"(^| )_[A-Za-z0-9\-._ ]+_( |$)",
-                             self._sub_italics, message)
-            # Escape any remaining hash characters to save them from being turned
-            #  into headers by markdown2
-            message = message.replace("#", "\\#")
+            message = re.sub(r'\*', "**", message)
+
             message = markdown2.markdown(
                 message,
                 extras=[
                     "cuddled-lists",
-                    # Disable parsing _ and __ for em and strong
-                    # This prevents breaking of emoji codes like :stuck_out_tongue
-                    #  for which the underscores it liked to mangle.
-                    # We still have nice bold and italics formatting though
-                    #  because we pre-process underscores into asterisks. :)
-                    "code-friendly",
                     # This gives us <pre> and <code> tags for ```-fenced blocks
                     "fenced-code-blocks",
                     "pyshell"
@@ -178,9 +169,6 @@ class SlackFormatter(object):
         # Special handling cases for lists
         message = message.replace("\n\n<ul>", "<ul>")
         message = message.replace("\n<li>", "<li>")
-
-        # Introduce unicode emoji
-        message = emoji.emojize(message, use_aliases=True)
 
         return message
 
@@ -231,28 +219,6 @@ class SlackFormatter(object):
                           "not found in channels.json: {}".format(e))
             channel_name = channel_id
         return "<b>#{}</b>".format(channel_name)
-
-    def __em_strong(self, matchobj, format="em"):
-        if format not in ("em", "strong"):
-            raise ValueError
-        chars = "*" if format == "em" else "**"
-
-        text = matchobj.group(0)
-        starting_space = " " if text[0] == " " else ""
-        ending_space = " " if text[-1] == " " else ""
-        return "{}{}{}{}{}".format(
-            starting_space,
-            chars,
-            matchobj.group(0).strip()[1:-1],
-            chars,
-            ending_space
-        )
-
-    def _sub_italics(self, matchobj):
-        return self.__em_strong(matchobj, "em")
-
-    def _sub_bold(self, matchobj):
-        return self.__em_strong(matchobj, "strong")
 
 
 class LinkAttachment(object):
