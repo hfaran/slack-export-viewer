@@ -99,6 +99,12 @@ class Message(object):
 class SlackFormatter(object):
     "This formats messages and provides access to workspace-wide data (user and channel metadata)."
 
+    # Class-level constants for precompilation of frequently-reused regular expressions
+    # URL detection relies on http://stackoverflow.com/a/1547940/1798683
+    _LINK_PAT = re.compile(r"<(https|http|mailto):[A-Za-z0-9_\.\-\/\?\,\=\#\:\@]+\|[^>]+>")
+    _MENTION_PAT = re.compile(r"<((?:#C|@[UB])\w+)(?:\|([A-Za-z0-9.-_]+))?>")
+    _HASHTAG_PAT = re.compile(r"(^| )#[A-Za-z][\w\.\-\_]+( |$)")
+
     def __init__(self, USER_DATA, CHANNEL_DATA):
         self.__USER_DATA = USER_DATA
         self.__CHANNEL_DATA = CHANNEL_DATA
@@ -132,18 +138,11 @@ class SlackFormatter(object):
         message = self._slack_to_accepted_emoji(message)
 
         # Handle mentions of users, channels and bots (e.g "<@U0BM1CGQY|calvinchanubc> has joined the channel")
-        message = re.sub(r"<((?:#C|@[UB])\w+)(?:\|([A-Za-z0-9.-_]+))?>",
-                         self._sub_annotated_mention, message)
+        message = self._MENTION_PAT.sub(self._sub_annotated_mention, message)
         # Handle links
-        message = re.sub(
-            # http://stackoverflow.com/a/1547940/1798683
-            # TODO This regex is likely still incomplete or could be improved
-            r"<(https|http|mailto):[A-Za-z0-9_\.\-\/\?\,\=\#\:\@]+\|[^>]+>",
-            self._sub_hyperlink, message
-        )
+        message = self._LINK_PAT.sub(self._sub_hyperlink, message)
         # Handle hashtags (that are meant to be hashtags and not headings)
-        message = re.sub(r"(^| )#[A-Za-z][\w\.\-\_]+( |$)",
-                         self._sub_hashtag, message)
+        message = self._HASHTAG_PAT.sub(self._sub_hashtag, message)
 
         # Introduce unicode emoji
         message = emoji.emojize(message, use_aliases=True)
@@ -162,7 +161,6 @@ class SlackFormatter(object):
                 ]
             ).strip()
 
-        # Newlines to breaks
         # Special handling cases for lists
         message = message.replace("\n\n<ul>", "<ul>")
         message = message.replace("\n<li>", "<li>")
