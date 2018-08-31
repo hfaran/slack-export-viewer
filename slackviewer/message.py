@@ -139,14 +139,14 @@ class SlackFormatter(object):
         message = re.sub(
             # http://stackoverflow.com/a/1547940/1798683
             # TODO This regex is likely still incomplete or could be improved
-            r"<(https|http|mailto):[A-Za-z0-9_\.\-\/\|\?\,\=\#\:\@]+>",
+            r"<(https|http|mailto):[A-Za-z0-9_\.\-\/\?\,\=\#\:\@]+\|[^>]+>",
             self._sub_hyperlink, message
         )
         # Handle hashtags (that are meant to be hashtags and not headings)
-        message = re.sub(r"(^| )#[A-Za-z0-9\.\-\_]+( |$)",
+        message = re.sub(r"(^| )#[A-Za-z][\w\.\-\_]+( |$)",
                          self._sub_hashtag, message)
         # Handle channel references
-        message = re.sub(r"<#C\w+>", self._sub_channel_ref, message)
+        message = re.sub(r"<#(C\w+)(?:|([^>]+))?>", self._sub_channel_ref, message)
 
         if process_markdown:
             # Handle bold (convert * * to ** **)
@@ -207,7 +207,7 @@ class SlackFormatter(object):
             url, title = compound.split("|")
         else:
             url, title = compound, compound
-        result = "[{title}]({url})".format(url=url, title=title)
+        result = "<a href=\"{url}\">{title}</a>".format(url=url, title=title)
         return result
 
     def _sub_hashtag(self, matchobj):
@@ -216,21 +216,21 @@ class SlackFormatter(object):
         starting_space = " " if text[0] == " " else ""
         ending_space = " " if text[-1] == " " else ""
 
-        return "{}*{}*{}".format(
+        return "{}<b>{}</b>{}".format(
             starting_space,
             text.strip(),
             ending_space
         )
 
     def _sub_channel_ref(self, matchobj):
-        channel_id = matchobj.group(0)[2:-1]
+        channel_id = matchobj.group(1)
         try:
             channel_name = self.__CHANNEL_DATA[channel_id]["name"]
         except KeyError as e:
             logging.error("A channel reference was detected but metadata "
                           "not found in channels.json: {}".format(e))
             channel_name = channel_id
-        return "*#{}*".format(channel_name)
+        return "<b>#{}</b>".format(channel_name)
 
     def __em_strong(self, matchobj, format="em"):
         if format not in ("em", "strong"):
