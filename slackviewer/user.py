@@ -31,7 +31,9 @@ class User(object):
 
     @property
     def email(self):
-        "Shortcut property for finding the e-mail address or bot URL."
+        """
+        Shortcut property for finding the e-mail address or bot URL.
+        """
         if "profile" in self._raw:
             email = self._raw["profile"].get("email")
         elif "bot_url" in self._raw:

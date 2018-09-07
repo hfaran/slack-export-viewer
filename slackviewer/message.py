@@ -159,7 +159,12 @@ class LinkAttachment(object):
 
     @property
     def fields(self):
-        "Only present on attachments, not files--this abstraction isn't 100% awesome.'"
+        """
+        Fetch the "fields" list, and process the text within each field, including markdown
+        processing if the message indicates that the fields contain markdown.
+
+        Only present on attachments, not files--this abstraction isn't 100% awesome.'
+        """
         process_markdown = ("fields" in self._raw.get("mrkdwn_in", []))
         fields = self._raw.get("fields", [])
         if fields:
