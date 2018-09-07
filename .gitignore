@@ -7,6 +7,10 @@ __pycache__/
 # C extensions
 *.so
 
+# Single-file exports
+/*.html
+/*.pdf
+
 # Distribution / packaging
 .Python
 env/
