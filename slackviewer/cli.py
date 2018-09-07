@@ -1,6 +1,7 @@
 import click
 import pkgutil
 import shutil
+import os.path
 
 from datetime import datetime
 
