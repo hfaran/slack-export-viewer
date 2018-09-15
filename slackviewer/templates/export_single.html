@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+{% from "util.html" import render_message %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Slack Export - {{ workspace_name }}</title>
+    <style>
+        {{css}}
+        .channel-block {
+            page-break-after: always;
+        }
+        .export-metadata {
+            line-height: 2;
+        }
+    </style>
+</head>
+<body>
+    <h1>Export of Slack Workspace "{{workspace_name}}"</h1>
+    <table class="export-metadata">
+        <tr><td>Generated from file:</td><td><b>{{source_file}}</b></td></tr>
+        <tr><td>Generated on:</td><td> <b>{{generated_on.strftime("%F %H:%M:%S")}}</b></td></tr>
+    </table>
+    </div>
+    {% for channel in channels %}
+    <div class="channel-block">
+        <h2>Messages in #{{channel.channel_name}}</h2>
+        <div class="message-list">
+            {% for message in channel.messages %}
+                {{render_message(message)}}
+            {% endfor %}
+        </div>
+    </div>
+    {% endfor %}
+</body>
+</html>
