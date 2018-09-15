@@ -1,0 +1,70 @@
+{% macro render_thumbnail(parent, thumbnail_size=None) -%}
+    {% set thumb = parent.thumbnail(thumbnail_size) %}
+    {% if thumb %}
+        <a href="{{parent.link}}">
+            <img class="preview" src="{{thumb.src}}"
+                {% if thumb.width %}width="{{thumb.width}}"{% endif %}
+                {% if thumb.height %} height="{{thumb.height}}"{% endif %} />
+        </a>
+    {% else %}
+        <!-- no preview available -->
+    {% endif %}
+{%- endmacro %}
+
+{% macro render_message(message, preview_size) -%}
+    <div class="message-container{%if message.subtype %} {{message.subtype}}{%endif%}">
+        <div id="{{ message.id }}">
+            {%if message.img%}<img src="{{ message.img }}" class="user_icon" />{%else%}<div class="user_icon"></div>{%endif%}
+            <div class="message">
+                <div class="username">{{ message.username }}
+                    {%if message.user.email%} <span class="print-only user-email">({{message.user.email}})</span>{%endif%}
+                </div>
+                <a href="#{{ message.id}}"><div class="time">{{ message.time }}</div></a>
+                <div class="msg">
+                    {{ message.msg|safe }}
+                    {% for attachment in message.attachments -%}
+                        <div class="message-attachment"
+                            {%if attachment.color %}style="border-color: #{{attachment.color}}"{%endif%}>
+                            {%if attachment.service_name %}<div class="service-name">{{ attachment.service_name }}</div>{%endif%}
+                            {%if attachment.author_name%}
+                                <div class="attachment-author">
+                                    <img src="{{attachment.author_icon}}" class="icon">
+                                    {%if attachment.author_link%}<a href="{{attachment.author_link}}">{%endif%}
+                                    {{attachment.author_name}}
+                                    {%if attachment.author_link%}</a><span class="print-only">({{attachment.author_link}})</span>{%endif%}
+                                </div>
+                            {%endif%}
+                            {%if attachment.pretext %}<div class="pre-text">{{attachment.pretext}}</div>{%endif%}
+                            <div class="link-title"><a href="{{ attachment.title_link }}">{{ attachment.title }}</a></div>
+                            <div class="link-text">
+                                {{attachment.text}}
+                            </div>
+                            {%for field in attachment.fields %}
+                                <div class="attachment-field">
+                                    {%if field.title %}<div class="field-title">{{field.title}}</div>{%endif%}
+                                    {{field.value}}
+                                </div>
+                            {%endfor%}
+                            {{ render_thumbnail(attachment, preview_size) }}
+                            {% if attachment.original_url %}
+                                <div class="print-only">Original URL: {{attachment.original_url}}</div>
+                            {% endif %}
+                            {%if attachment.footer%}
+                                <div class="attachment-footer">
+                                    <img src="{{attachment.footer_icon}}" class="icon" />
+                                    {{attachment.footer}}
+                                </div>
+                            {%endif%}
+                        </div>
+                    {% endfor  %}
+                    {% for file in message.files  -%}
+                        <div class="message-upload">
+                            <div class="link-title"><a href="{{ file.link }}">{{ file.title }}</a></div>
+                            {{ render_thumbnail(file, preview_size) }}
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+{%- endmacro %}

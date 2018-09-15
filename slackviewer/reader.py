@@ -3,6 +3,7 @@ import os
 import glob
 import io
 
+from slackviewer.formatter import SlackFormatter
 from slackviewer.message import Message
 from slackviewer.user import User
 
@@ -131,6 +132,7 @@ class Reader(object):
 
         chats = {}
         empty_dms = []
+        formatter = SlackFormatter(self.__USER_DATA, data)
 
         for name in names:
 
@@ -150,7 +152,7 @@ class Reader(object):
                 with io.open(os.path.join(self._PATH, day), encoding="utf8") as f:
                     # loads all messages
                     day_messages = json.load(f)
-                    messages.extend([Message(self.__USER_DATA, data, d) for d in day_messages])
+                    messages.extend([Message(formatter, d) for d in day_messages])
 
             chats[name] = messages
 
