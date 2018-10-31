@@ -30,6 +30,9 @@ class SlackFormatter(object):
             elif "username" in message:
                 bot_name = message["username"]
                 bot_url = None
+            else:
+                bot_name = None
+                bot_url = None
 
             self.__USER_DATA[bot_id] = User({
                 "user": bot_id,
