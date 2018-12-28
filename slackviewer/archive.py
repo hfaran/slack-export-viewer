@@ -10,7 +10,8 @@ import slackviewer
 from slackviewer.constants import SLACKVIEWER_TEMP_PATH
 from slackviewer.utils.six import to_unicode, to_bytes
 
-def SHA1_file(filepath, extra=""):
+
+def SHA1_file(filepath, extra=b''):
     """
     Returns hex digest of SHA1 hash of file at filepath
 
@@ -22,9 +23,12 @@ def SHA1_file(filepath, extra=""):
 
     :rtype: str
     """
-
+    h = hashlib.sha1()
     with io.open(filepath, 'rb') as f:
-        return hashlib.sha1(f.read() + extra).hexdigest()
+        for chunk in iter(lambda: f.read(h.block_size), b''):
+            h.update(chunk)
+    h.update(extra)
+    return h.hexdigest()
 
 
 def extract_archive(filepath):
