@@ -1,7 +1,7 @@
 language: python
 python:
   - "2.7"
-  - "3.6"
+  - "3.7"
 install:
   - "pip install -r requirements.txt"
   - "pip install -r dev-requirements.txt"
@@ -9,3 +9,4 @@ script:
   - python app.py -z tests/testarchive.zip --test
   - python cli.py clean
   - python cli.py clean -w
+  - python -m pytest tests
