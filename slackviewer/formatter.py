@@ -48,6 +48,8 @@ class SlackFormatter(object):
 
     def render_text(self, message, process_markdown=True):
         message = message.replace("<!channel>", "@channel")
+        message = message.replace("<!here>", "@here")
+        message = message.replace("<!everyone>", "@everyone")
         message = self._slack_to_accepted_emoji(message)
 
         # Handle mentions of users, channels and bots (e.g "<@U0BM1CGQY|calvinchanubc> has joined the channel")
