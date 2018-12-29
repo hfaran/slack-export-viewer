@@ -76,6 +76,14 @@ class Message(object):
         return text
 
     @property
+    def reactions(self):
+        reactions = self._message.get("reactions", [])
+        return [
+            {"usernames": [user for user in reaction.get("users")], "name":':'+reaction.get("name")+':'}
+            for reaction in reactions
+        ]
+
+    @property
     def img(self):
         try:
             return self.user.image_url(self._DEFAULT_USER_ICON_SIZE)
