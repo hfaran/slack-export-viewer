@@ -63,12 +63,12 @@
                             {{ render_thumbnail(file, preview_size) }}
                         </div>
                     {% endfor %}
-                    <div class="message-reaction">
-                        {% for reaction in message.reactions %}
-                            {{ reaction.name }}
-                        {% endfor %}
-                    </div>
-                </div>
+                    {% for reaction in message.reactions %}
+                        <div class="message-reaction">
+                        {{ reaction.name }} {{ reaction.usernames|join(', ') }}
+                        </div>
+                    {% endfor %}
+		</div>
             </div>
         </div>
     </div>

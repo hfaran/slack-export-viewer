@@ -75,11 +75,25 @@ class Message(object):
             text = self._formatter.render_text(text)
         return text
 
+    def user_message(self, user_id):
+       return {"user": user_id}
+
+    def usernames(self, reaction):
+        return [
+            self._formatter.find_user(self.user_message(user_id)).display_name
+            for user_id
+            in reaction.get("users")
+            if self._formatter.find_user(self.user_message(user_id))
+        ]
+
     @property
     def reactions(self):
         reactions = self._message.get("reactions", [])
         return [
-            {"usernames": [user for user in reaction.get("users")], "name":':'+reaction.get("name")+':'}
+            {
+                "usernames": self.usernames(reaction),
+                "name": emoji.emojize(':'+reaction.get("name")+':', use_aliases=True)
+            }
             for reaction in reactions
         ]
 
