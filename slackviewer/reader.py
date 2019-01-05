@@ -23,10 +23,12 @@ class Reader(object):
     # Public Methods #
     ##################
 
-    def compile_channels(self):
+    def compile_channels(self, channels):
+        if isinstance(channels, str):
+            channels = channels.split(',')
 
         channel_data = self._read_from_json("channels.json")
-        channel_names = [c["name"] for c in channel_data.values()]
+        channel_names = [c["name"] for c in channel_data.values() if not channels or c["name"] in channels]
 
         return self._create_messages(channel_names, channel_data)
 

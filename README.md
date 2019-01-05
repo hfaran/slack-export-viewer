@@ -45,14 +45,20 @@ $ slack-export-viewer --help
 Usage: slack-export-viewer [OPTIONS]
 
 Options:
-  -p, --port INTEGER  Host port to serve your content on
-  -z, --archive PATH  Path to your Slack export archive (.zip file or directory)
-                      [required]
-  -I, --ip TEXT       Host IP to serve your content on
-  --no-browser        If you do not want a browser to open automatically, set
-                      this.
+  -p, --port INTEGER        Host port to serve your content on
+  -z, --archive PATH        Path to your Slack export archive (.zip file or
+                            directory)  [required]
+  -I, --ip TEXT             Host IP to serve your content on
+  --no-browser              If you do not want a browser to open
+                            automatically, set this.
+  --channels TEXT           A comma separated list of channels to parse.
+  --no-sidebar              Removes the sidebar.
+  --no-external-references  Removes all references to external css/js/images.
+  --test                    Runs in 'test' mode, i.e., this will do an archive
+                            extract, but will not start the server, and
+                            immediately quit.
   --debug
-  --help              Show this message and exit.
+  --help                    Show this message and exit.
 ```
 
 
