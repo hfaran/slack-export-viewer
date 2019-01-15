@@ -4,11 +4,14 @@
 <head>
     <meta charset="UTF-8">
     <title>Slack Export - #{{ name }}</title>
+    {% if not no_external_references %}
     <link rel=stylesheet type=text/css
           href="{{ url_for('static', filename='viewer.css') }}">
+    {% endif %}
 </head>
 <body>
 <div id="slack-archive-viewer">
+    {% if show_sidebar %}
     <div id="sidebar">
         <h3 id="channel-title">Public Channels</h3>
         <ul class="list" id="channel-list">
@@ -54,9 +57,10 @@
             {% endfor %}
         </ul>
     </div>
+    {% endif %}
     <div class="messages">
         {% for message in messages %}
-            {{render_message(message)}}
+            {{render_message(message, None, no_external_references)}}
         {% endfor %}
     </div>
 </div>

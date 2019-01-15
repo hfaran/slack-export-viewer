@@ -21,7 +21,9 @@ def channel_name(name):
                                  channels=sorted(channels),
                                  groups=sorted(groups),
                                  dm_users=dm_users,
-                                 mpim_users=mpim_users)
+                                 mpim_users=mpim_users,
+                                 no_sidebar=app.no_sidebar,
+                                 no_external_references=app.no_external_references)
 
 
 @app.route("/group/<name>/")
@@ -37,7 +39,9 @@ def group_name(name):
                                  channels=sorted(channels),
                                  groups=sorted(groups),
                                  dm_users=dm_users,
-                                 mpim_users=mpim_users)
+                                 mpim_users=mpim_users,
+                                 no_sidebar=app.no_sidebar,
+                                 no_external_references=app.no_external_references)
 
 
 @app.route("/dm/<id>/")
@@ -53,7 +57,9 @@ def dm_id(id):
                                  channels=sorted(channels),
                                  groups=sorted(groups),
                                  dm_users=dm_users,
-                                 mpim_users=mpim_users)
+                                 mpim_users=mpim_users,
+                                 no_sidebar=app.no_sidebar,
+                                 no_external_references=app.no_external_references)
 
 
 @app.route("/mpim/<name>/")
@@ -69,7 +75,9 @@ def mpim_name(name):
                                  channels=sorted(channels),
                                  groups=sorted(groups),
                                  dm_users=dm_users,
-                                 mpim_users=mpim_users)
+                                 mpim_users=mpim_users,
+                                 no_sidebar=app.no_sidebar,
+                                 no_external_references=app.no_external_references)
 
 
 @app.route("/")
