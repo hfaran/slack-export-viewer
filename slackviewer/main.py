@@ -42,7 +42,7 @@ def configure_app(app, archive, channels, no_sidebar, no_external_references, de
               help="If you do not want a browser to open "
                    "automatically, set this.")
 @click.option('--channels', type=click.STRING,
-              default=envvar("SEV_CHANNELS", ''),
+              default=envvar("SEV_CHANNELS", None),
               help="A comma separated list of channels to parse.")
 @click.option('--no-sidebar', is_flag=True,
               default=flag_ennvar("SEV_NO_SIDEBAR"),
