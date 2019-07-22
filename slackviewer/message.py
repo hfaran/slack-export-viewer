@@ -192,6 +192,6 @@ class LinkAttachment(object):
         if fields:
             logging.debug("Rendering with markdown markdown %s for %s", process_markdown, fields)
         return [
-            {"title": e["title"], "short": e["short"], "value": self._formatter.render_text(e["value"], process_markdown)}
+            {"title": e["title"], "short": e.get("short", False), "value": self._formatter.render_text(e["value"], process_markdown)}
             for e in fields
         ]
