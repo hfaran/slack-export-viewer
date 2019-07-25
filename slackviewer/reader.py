@@ -18,7 +18,6 @@ class Reader(object):
         with io.open(os.path.join(self._PATH, "users.json"), encoding="utf8") as f:
             self.__USER_DATA = {u["id"]: User(u) for u in json.load(f)}
 
-
     ##################
     # Public Methods #
     ##################
@@ -67,7 +66,7 @@ class Reader(object):
         all_dms_users = []
 
         for dm in dms:
-            # checks if messages actually exsist
+            # checks if messages actually exist
             if dm["id"] not in self._EMPTY_DMS:
                 # added try catch for users from shared workspaces not in current workspace
                 try:

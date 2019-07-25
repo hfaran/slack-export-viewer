@@ -35,12 +35,12 @@ def clean(wet):
 @cli.command(help="Generates a single-file printable export for an archive file or directory")
 @click.argument('archive_dir')
 def export(archive_dir):
-    css = pkgutil.get_data('slackviewer','static/viewer.css').decode('utf-8')
+    css = pkgutil.get_data('slackviewer', 'static/viewer.css').decode('utf-8')
     tmpl = Environment(loader=PackageLoader('slackviewer')).get_template("export_single.html")
     export_file_info = get_export_info(archive_dir)
     r = Reader(export_file_info["readable_path"])
     channel_list = sorted(
-        [{"channel_name": k, "messages": v} for (k,v) in r.compile_channels().iteritems()],
+        [{"channel_name": k, "messages": v} for (k, v) in r.compile_channels().items()],
         key=lambda d: d["channel_name"]
     )
 
