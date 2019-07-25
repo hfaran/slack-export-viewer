@@ -30,6 +30,7 @@ setup(
     author_email='hamzafaran@outlook.com',
     description=('Slack Export Archive Viewer'),
     long_description=long_description,
+    long_description_content_type="text/markdown",
     packages=find_packages(),
     install_requires=install_requires,
     entry_points={'console_scripts': [
