@@ -23,7 +23,7 @@ class Reader(object):
     # Public Methods #
     ##################
 
-    def compile_channels(self, channels):
+    def compile_channels(self, channels=None):
         if isinstance(channels, str):
             channels = channels.split(',')
 
