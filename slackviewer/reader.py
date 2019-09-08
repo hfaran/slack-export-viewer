@@ -110,6 +110,14 @@ class Reader(object):
         return all_mpim_users
 
 
+    @staticmethod
+    def _extract_time(json):
+        try:
+            # Convert the timestamp part to float
+            return float(json['ts'])
+        except KeyError:
+            return 0
+        
     ###################
     # Private Methods #
     ###################
@@ -153,6 +161,10 @@ class Reader(object):
                 with io.open(os.path.join(self._PATH, day), encoding="utf8") as f:
                     # loads all messages
                     day_messages = json.load(f)
+                    
+                    # sorts the messages in the json file
+                    day_messages.sort(key=Reader._extract_time) 
+                    
                     messages.extend([Message(formatter, d) for d in day_messages])
 
             chats[name] = messages
