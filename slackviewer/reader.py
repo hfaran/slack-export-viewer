@@ -113,11 +113,10 @@ class Reader(object):
     @staticmethod
     def _extract_time(json):
         try:
-            # Also convert to int since update_time will be string.  When comparing
-            # strings, "10" is smaller than "2".
-            return json['ts']
+            # Convert the timestamp part to float
+            return float(json['ts'])
         except KeyError:
-            return ""
+            return 0
         
     ###################
     # Private Methods #
