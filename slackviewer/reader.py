@@ -1,11 +1,14 @@
-import json
-import os
+from collections import OrderedDict
+
 import glob
 import io
+import json
+import os
 
 from slackviewer.formatter import SlackFormatter
 from slackviewer.message import Message
 from slackviewer.user import User
+
 
 class Reader(object):
     """
@@ -73,10 +76,9 @@ class Reader(object):
                     dm_members = {"id": dm["id"], "users": [self.__USER_DATA[m] for m in dm["members"]]}
                     all_dms_users.append(dm_members)
                 except KeyError:
-                    dm_members = None   
+                    dm_members = None
 
         return all_dms_users
-
 
     def compile_mpim_messages(self):
 
@@ -109,15 +111,6 @@ class Reader(object):
 
         return all_mpim_users
 
-
-    @staticmethod
-    def _extract_time(json):
-        try:
-            # Convert the timestamp part to float
-            return float(json['ts'])
-        except KeyError:
-            return 0
-        
     ###################
     # Private Methods #
     ###################
@@ -160,19 +153,60 @@ class Reader(object):
             for day in sorted(day_files):
                 with io.open(os.path.join(self._PATH, day), encoding="utf8") as f:
                     # loads all messages
-                    day_messages = json.load(f)
-                    
-                    # sorts the messages in the json file
-                    day_messages.sort(key=Reader._extract_time) 
-                    
+                    day_messages = json.load(f)                    
                     messages.extend([Message(formatter, d) for d in day_messages])
 
             chats[name] = messages
+        chats = self._build_threads(chats)
 
         if isDms:
             self._EMPTY_DMS = empty_dms
 
         return chats
+
+    def _build_threads(self, channel_data: dict):
+        """
+        Re-orders the JSON to allow for thread building.
+
+        :param [dict] channel_data: dictionary of all Slack channels and messages
+
+        :return: None
+        """
+        for channel_name in channel_data.keys():
+            if channel_name in channel_data:
+                replies = {}
+                for message in channel_data[channel_name]:
+                    #   If there's a "reply_count" key, generate a list of user and timestamp dictionaries
+                    if 'reply_count' in message._message.keys():
+                        #   Identify and save where we are
+                        location = channel_data[channel_name].index(message)
+                        reply_list = []
+                        for reply in message._message['replies']:
+                            reply_list.append(reply)
+                        reply_objects = []
+                        for item in reply_list:
+                            for answer in channel_data[channel_name]:
+                                if "user" in answer._message:
+                                    if answer._message['user'] == item['user'] \
+                                            and answer._message['ts'] == item['ts']:
+                                        reply_location = channel_data[channel_name].index(answer)
+                                        # Mutate the original dictionary. We're going to put the thread replies after
+                                        # the original message.
+                                        thread_message = channel_data[channel_name].pop(reply_location)
+                                        reply_objects.append(thread_message)
+                        replies[location] = reply_objects
+                # Create an OrderedDict of thread locations and replies in reverse numerical order
+                sorted_threads = OrderedDict(sorted(replies.items(), reverse=True))
+
+                # Iterate through the threads and insert them back into channel_data[channel_name] in response order
+                for grouping in sorted_threads.items():
+                    location = grouping[0] + 1
+                    for reply in grouping[1]:
+                        if not reply._message["text"].startswith("**Thread Reply:**"):
+                            reply._message["text"] = "**Thread Reply:** {}".format(reply._message['text'])
+                        channel_data[channel_name].insert(location, reply)
+                        location += 1
+            return channel_data
 
     def _read_from_json(self, file):
         """
