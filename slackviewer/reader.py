@@ -164,7 +164,7 @@ class Reader(object):
 
         return chats
 
-    def _build_threads(self, channel_data: dict):
+    def _build_threads(self, channel_data):
         """
         Re-orders the JSON to allow for thread building.
 
