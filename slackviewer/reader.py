@@ -206,7 +206,7 @@ class Reader(object):
                             reply._message["text"] = "**Thread Reply:** {}".format(reply._message['text'])
                         channel_data[channel_name].insert(location, reply)
                         location += 1
-            return channel_data
+        return channel_data
 
     def _read_from_json(self, file):
         """
