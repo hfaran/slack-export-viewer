@@ -111,6 +111,14 @@ class Reader(object):
 
         return all_mpim_users
 
+    @staticmethod
+    def _extract_time(json):
+        try:
+            # Convert the timestamp part to float
+            return float(json['ts'])
+        except KeyError:
+            return 0
+
     ###################
     # Private Methods #
     ###################
