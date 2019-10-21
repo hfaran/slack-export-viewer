@@ -12,14 +12,14 @@ app = flask.Flask(
 def channel_name(name):
     messages = flask._app_ctx_stack.channels[name]
     channels = list(flask._app_ctx_stack.channels.keys())
-    groups = list(flask._app_ctx_stack.groups.keys())
+    groups = list(flask._app_ctx_stack.groups.keys()) if flask._app_ctx_stack.groups else {}
     dm_users = list(flask._app_ctx_stack.dm_users)
     mpim_users = list(flask._app_ctx_stack.mpim_users)
 
     return flask.render_template("viewer.html", messages=messages,
                                  name=name.format(name=name),
                                  channels=sorted(channels),
-                                 groups=sorted(groups),
+                                 groups=sorted(groups) if groups else {},
                                  dm_users=dm_users,
                                  mpim_users=mpim_users,
                                  no_sidebar=app.no_sidebar,

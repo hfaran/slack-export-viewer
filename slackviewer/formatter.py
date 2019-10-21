@@ -1,10 +1,17 @@
 import logging
 import re
+import sys
 
 import emoji
 import markdown2
 
 from slackviewer.user import User
+
+# Workaround for ASCII encoding error in Python 2.7
+# See https://github.com/hfaran/slack-export-viewer/issues/81
+if sys.version_info[0] == 2:
+    reload(sys)
+    sys.setdefaultencoding('utf8')
 
 class SlackFormatter(object):
     "This formats messages and provides access to workspace-wide data (user and channel metadata)."
