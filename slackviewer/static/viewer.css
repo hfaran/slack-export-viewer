@@ -59,7 +59,7 @@ body {
 }
 
 .messages {
-    width: calc(100vw - 304px);
+    width: calc(100vw - 305px);
     height: 100vh;
     text-align: left;
     display: inline-block;
