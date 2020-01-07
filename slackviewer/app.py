@@ -83,7 +83,17 @@ def mpim_name(name):
 @app.route("/")
 def index():
     channels = list(flask._app_ctx_stack.channels.keys())
-    if "general" in channels:
-        return channel_name("general")
+    groups = list(flask._app_ctx_stack.groups.keys())
+    dm_users = list(flask._app_ctx_stack.dm_users)
+    mpim_users = list(flask._app_ctx_stack.mpim_users)
+    if(len(channels) > 0):
+        if "general" in channels:
+            return channel_name("general")
+        else:
+            return channel_name(channels[0])
+    elif(len(groups) >0):
+        return(group_name(groups[0]))
+    elif(len(dm_users) >0):
+        return(dm_id(dm_users[0]))
     else:
-        return channel_name(channels[0])
+        print("Not sure where to start- Try adding a Private group, Public group or DM to the slack-export ")
