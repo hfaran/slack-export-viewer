@@ -84,16 +84,18 @@ def mpim_name(name):
 def index():
     channels = list(flask._app_ctx_stack.channels.keys())
     groups = list(flask._app_ctx_stack.groups.keys())
-    dm_users = list(flask._app_ctx_stack.dm_users)
-    mpim_users = list(flask._app_ctx_stack.mpim_users)
-    if(len(channels) > 0):
+    dms = list(flask._app_ctx_stack.dms.keys())
+    mpims = list(flask._app_ctx_stack.mpims.keys())
+    if channels:
         if "general" in channels:
             return channel_name("general")
         else:
             return channel_name(channels[0])
-    elif(len(groups) >0):
-        return(group_name(groups[0]))
-    elif(len(dm_users) >0):
-        return(dm_id(dm_users[0]))
+    elif groups:
+        return group_name(groups[0])
+    elif dms:
+        return dm_id(dms[0])
+    elif mpims:
+        return mpim_name(mpims[0])
     else:
         print("Not sure where to start- Try adding a Private group, Public group or DM to the slack-export ")
