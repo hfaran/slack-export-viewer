@@ -98,4 +98,4 @@ def index():
     elif mpims:
         return mpim_name(mpims[0])
     else:
-        print("Not sure where to start- Try adding a Private group, Public group or DM to the slack-export ")
+        return "No content was found in your export that we could render."
