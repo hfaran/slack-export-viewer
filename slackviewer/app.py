@@ -83,7 +83,19 @@ def mpim_name(name):
 @app.route("/")
 def index():
     channels = list(flask._app_ctx_stack.channels.keys())
-    if "general" in channels:
-        return channel_name("general")
+    groups = list(flask._app_ctx_stack.groups.keys())
+    dms = list(flask._app_ctx_stack.dms.keys())
+    mpims = list(flask._app_ctx_stack.mpims.keys())
+    if channels:
+        if "general" in channels:
+            return channel_name("general")
+        else:
+            return channel_name(channels[0])
+    elif groups:
+        return group_name(groups[0])
+    elif dms:
+        return dm_id(dms[0])
+    elif mpims:
+        return mpim_name(mpims[0])
     else:
-        return channel_name(channels[0])
+        return "No content was found in your export that we could render."
