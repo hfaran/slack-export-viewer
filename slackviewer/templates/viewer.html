@@ -38,7 +38,8 @@
             {% for dm in dm_users %}
                 <li class="dm{% if dm['id'] == id %} active{% endif %}">
                     <a href="{{ url_for('dm_id', id=dm['id']) }}">
-                        &#128100; {{ dm["users"][0].real_name if dm["users"][0].real_name else dm["users"][0].name }}, {{ dm["users"][1].real_name if dm["users"][1].real_name else dm["users"][1].name }}
+                        &#128100; {{ dm["users"][0].real_name if dm["users"][0].real_name else dm["users"][0].name }}
+                        {% if dm["users"][1] %}, {{ dm["users"][1].real_name if dm["users"][1].real_name else dm["users"][1].name }}{% endif %}
                     </a>
                 </li>
             {% endfor %}
