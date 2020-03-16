@@ -9,7 +9,7 @@ import slackviewer
 def read(filename):
     """Read and return `filename` in root dir of project and return string"""
     here = os.path.abspath(os.path.dirname(__file__))
-    return codecs.open(os.path.join(here, filename), 'r').read()
+    return codecs.open(os.path.join(here, filename), 'r', encoding='UTF-8').read()
 
 
 install_requires = read("requirements.txt").split()
