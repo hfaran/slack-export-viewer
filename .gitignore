@@ -67,3 +67,6 @@ target/
 # IDE
 .idea
 .vscode
+
+# Environments
+venv/
