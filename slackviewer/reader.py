@@ -110,7 +110,7 @@ class Reader(object):
         all_mpim_users = []
 
         for mpim in mpims:
-            mpim_members = {"name": mpim["name"], "users": [self.__USER_DATA[m] for m in mpim["members"]]}
+            mpim_members = {"name": mpim["name"], "users": [] if "members" not in mpim.keys() else [self.__USER_DATA[m] for m in mpim["members"]]}
             all_mpim_users.append(mpim_members)
 
         return all_mpim_users
@@ -192,7 +192,7 @@ class Reader(object):
             replies = {}
             for message in channel_data[channel_name]:
                 #   If there's a "reply_count" key, generate a list of user and timestamp dictionaries
-                if 'reply_count' in message._message.keys():
+                if all(x in message._message.keys() for x in ['reply_count','replies']):
                     #   Identify and save where we are
                     location = channel_data[channel_name].index(message)
                     reply_list = []
