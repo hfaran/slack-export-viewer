@@ -32,7 +32,7 @@ class Reader(object):
                     "image_512": "https://a.slack-edge.com/1801/img/slackbot_512.png",
                 }
             }
-            self.__USER_DATA["USLACKBOT"] = User(slackbot)
+            self.__USER_DATA.setdefault("USLACKBOT", User(slackbot))
 
     ##################
     # Public Methods #
