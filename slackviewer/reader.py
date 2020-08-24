@@ -20,6 +20,19 @@ class Reader(object):
         # TODO: Make sure this works
         with io.open(os.path.join(self._PATH, "users.json"), encoding="utf8") as f:
             self.__USER_DATA = {u["id"]: User(u) for u in json.load(f)}
+            slackbot = {
+                "id": "USLACKBOT",
+                "name": "slackbot",
+                "profile": {
+                    "image_24": "https://a.slack-edge.com/0180/img/slackbot_24.png",
+                    "image_32": "https://a.slack-edge.com/2fac/plugins/slackbot/assets/service_32.png",
+                    "image_48": "https://a.slack-edge.com/2fac/plugins/slackbot/assets/service_48.png",
+                    "image_72": "https://a.slack-edge.com/0180/img/slackbot_72.png",
+                    "image_192": "https://a.slack-edge.com/66f9/img/slackbot_192.png",
+                    "image_512": "https://a.slack-edge.com/1801/img/slackbot_512.png",
+                }
+            }
+            self.__USER_DATA.setdefault("USLACKBOT", User(slackbot))
 
     ##################
     # Public Methods #
