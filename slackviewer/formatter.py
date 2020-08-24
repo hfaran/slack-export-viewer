@@ -27,8 +27,6 @@ class SlackFormatter(object):
         self.__CHANNEL_DATA = CHANNEL_DATA
 
     def find_user(self, message):
-        if message.get("user") == "USLACKBOT":
-            return User({"name":"slackbot"})
         if message.get("subtype", "").startswith("bot_") and "bot_id" in message and message["bot_id"] not in self.__USER_DATA:
             bot_id = message["bot_id"]
             logging.debug("bot addition for %s", bot_id)
