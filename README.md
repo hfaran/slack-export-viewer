@@ -25,11 +25,11 @@ Slack team's export (instead of having to dive into hundreds of JSON files).
 
 ## Installation
 
-I recommend [`pipsi`](https://github.com/mitsuhiko/pipsi) for a nice 
+I recommend [`pipx`](https://github.com/pipxproject/pipx) for a nice
 isolated install.
 
 ```bash
-pipsi install slack-export-viewer
+pipx install slack-export-viewer
 ```
 
 Or just feel free to use `pip` as you like.
