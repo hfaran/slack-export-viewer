@@ -88,7 +88,10 @@ class Message(object):
         return [
             {
                 "usernames": self.usernames(reaction),
-                "name": emoji.emojize(':'+reaction.get("name")+':', use_aliases=True)
+                "name": emoji.emojize(
+                    self._formatter.slack_to_accepted_emoji(':{}:'.format(reaction.get("name"))),
+                    use_aliases=True
+                )
             }
             for reaction in reactions
         ]
