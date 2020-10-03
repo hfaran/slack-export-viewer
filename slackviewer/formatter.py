@@ -58,7 +58,6 @@ class SlackFormatter(object):
         message = message.replace("<!here|@here>", "@here")
         message = message.replace("<!everyone>", "@everyone")
         message = message.replace("<!everyone|@everyone>", "@everyone")
-        message = self._slack_to_accepted_emoji(message)
 
         # Handle mentions of users, channels and bots (e.g "<@U0BM1CGQY|calvinchanubc> has joined the channel")
         message = self._MENTION_PAT.sub(self._sub_annotated_mention, message)
@@ -68,6 +67,7 @@ class SlackFormatter(object):
         message = self._HASHTAG_PAT.sub(self._sub_hashtag, message)
 
         # Introduce unicode emoji
+        message = self.slack_to_accepted_emoji(message)
         message = emoji.emojize(message, use_aliases=True)
 
         if process_markdown:
@@ -90,7 +90,16 @@ class SlackFormatter(object):
 
         return message
 
-    def _slack_to_accepted_emoji(self, message):
+    def slack_to_accepted_emoji(self, message):
+        """Convert some Slack emoji shortcodes to more universal versions"""
+        # Convert -'s to _'s except for the 1st char (preserve things like :-1:)
+        # For example, Slack's ":woman-shrugging:" is converted to ":woman_shrugging:"
+        message = re.sub(
+            r":([^ <>/:])([^ <>/:]+):",
+            lambda x: ":{}{}:".format(x.group(1), x.group(2).replace("-", "_")),
+            message
+        )
+
         # https://github.com/Ranks/emojione/issues/114
         message = message.replace(":simple_smile:", ":slightly_smiling_face:")
         return message
