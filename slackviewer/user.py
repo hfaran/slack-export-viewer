@@ -57,3 +57,17 @@ class User(object):
             if img_key in profile:
                 return profile[img_key]
         return profile[self._DEFAULT_IMAGE_KEY]
+
+
+def deleted_user(id):
+    """
+    Create a User object for a deleted user.
+    """
+    deleted_user = {
+        "id": id,
+        "name": "deleted-" + id,
+        "deleted": True,
+        "is_bot": False,
+        "is_app_user": False,
+    }
+    return User(deleted_user)
