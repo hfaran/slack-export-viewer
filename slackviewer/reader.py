@@ -7,7 +7,7 @@ import os
 
 from slackviewer.formatter import SlackFormatter
 from slackviewer.message import Message
-from slackviewer.user import User
+from slackviewer.user import User, deleted_user
 
 
 class Reader(object):
@@ -90,7 +90,7 @@ class Reader(object):
                         users = dm["members"]
                     if "user" in dm:
                         users = [dm["user"]]
-                    dm_members = {"id": dm["id"], "users": [self.__USER_DATA[m] for m in users]}
+                    dm_members = {"id": dm["id"], "users": [self.__USER_DATA.setdefault(m, deleted_user(m)) for m in users]}
                     all_dms_users.append(dm_members)
                 except KeyError:
                     dm_members = None
@@ -123,7 +123,7 @@ class Reader(object):
         all_mpim_users = []
 
         for mpim in mpims:
-            mpim_members = {"name": mpim["name"], "users": [] if "members" not in mpim.keys() else [self.__USER_DATA[m] for m in mpim["members"]]}
+            mpim_members = {"name": mpim["name"], "users": [] if "members" not in mpim.keys() else [self.__USER_DATA.setdefault(m, deleted_user(m)) for m in mpim["members"]]}
             all_mpim_users.append(mpim_members)
 
         return all_mpim_users
