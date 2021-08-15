@@ -203,28 +203,47 @@ class Reader(object):
         """
         for channel_name in channel_data.keys():
             replies = {}
-            for message in channel_data[channel_name]:
+
+            user_ts_lookup = {}
+            items_to_remove = []
+            for i, m in enumerate(channel_data[channel_name]):
+                user = m._message.get('user')
+                ts = m._message.get('ts')
+
+                if user is None or ts is None:
+                    continue
+
+                k = (user, ts)
+                if k not in user_ts_lookup:
+                    user_ts_lookup[k] = []
+                user_ts_lookup[k].append((i, m))
+
+            for location, message in enumerate(channel_data[channel_name]):
                 #   If there's a "reply_count" key, generate a list of user and timestamp dictionaries
-                if all(x in message._message.keys() for x in ['reply_count','replies']):
+                if 'reply_count' in message._message or 'replies' in message._message:
                     #   Identify and save where we are
-                    location = channel_data[channel_name].index(message)
                     reply_list = []
                     for reply in message._message['replies']:
                         reply_list.append(reply)
                     reply_objects = []
                     for item in reply_list:
-                        for answer in channel_data[channel_name]:
-                            if "user" in answer._message:
-                                if answer._message['user'] == item['user'] \
-                                        and answer._message['ts'] == item['ts']:
-                                    reply_location = channel_data[channel_name].index(answer)
-                                    # Mutate the original dictionary. We're going to put the thread replies after
-                                    # the original message.
-                                    thread_message = channel_data[channel_name].pop(reply_location)
-                                    reply_objects.append(thread_message)
-                    replies[location] = reply_objects
+                        item_lookup_key = (item['user'], item['ts'])
+                        item_replies = user_ts_lookup.get(item_lookup_key)
+                        if item_replies is not None:
+                            reply_objects.extend(item_replies)
+
+                    if not reply_objects:
+                        continue
+
+                    sorted_reply_objects = sorted(reply_objects, key=lambda tup: tup[0])
+                    for reply_obj_tuple in sorted_reply_objects:
+                        items_to_remove.append(reply_obj_tuple[0])
+                    replies[location] = [tup[1] for tup in sorted_reply_objects]
             # Create an OrderedDict of thread locations and replies in reverse numerical order
             sorted_threads = OrderedDict(sorted(replies.items(), reverse=True))
+
+            for idx_to_remove in sorted(items_to_remove, reverse=True):
+                del channel_data[channel_name][idx_to_remove]
 
             # Iterate through the threads and insert them back into channel_data[channel_name] in response order
             for grouping in sorted_threads.items():
