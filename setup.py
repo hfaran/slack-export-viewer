@@ -13,7 +13,7 @@ def read(filename):
 
 
 install_requires = read("requirements.txt").split()
-long_description = read('README.md')
+long_description = "See README at https://github.com/hfaran/slack-export-viewer"
 
 
 setup(
