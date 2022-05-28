@@ -251,7 +251,7 @@ class Reader(object):
                 location = grouping[0] + 1
                 for reply in grouping[1]:
                     msgtext = reply._message.get("text")
-                    if not msgtext or msgtext.startswith("**Thread Reply:**"):
+                    if not msgtext or not msgtext.startswith("**Thread Reply:**"):
                         reply._message["text"] = "**Thread Reply:** {}".format(msgtext)
                     channel_data[channel_name].insert(location, reply)
                     location += 1
