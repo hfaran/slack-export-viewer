@@ -250,8 +250,9 @@ class Reader(object):
             for grouping in sorted_threads.items():
                 location = grouping[0] + 1
                 for reply in grouping[1]:
-                    if not reply._message["text"].startswith("**Thread Reply:**"):
-                        reply._message["text"] = "**Thread Reply:** {}".format(reply._message['text'])
+                    msgtext = reply._message.get("text")
+                    if not msgtext or not msgtext.startswith("**Thread Reply:**"):
+                        reply._message["text"] = "**Thread Reply:** {}".format(msgtext)
                     channel_data[channel_name].insert(location, reply)
                     location += 1
             # threads location hotfix
