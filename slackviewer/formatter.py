@@ -68,7 +68,7 @@ class SlackFormatter(object):
 
         # Introduce unicode emoji
         message = self.slack_to_accepted_emoji(message)
-        message = emoji.emojize(message, use_aliases=True)
+        message = emoji.emojize(message, language='alias')
 
         if process_markdown:
             # Handle bold (convert * * to ** **)
