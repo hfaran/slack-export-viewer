@@ -1,4 +1,4 @@
 click
 flask
 markdown2
-emoji
+emoji>=2.0.0
