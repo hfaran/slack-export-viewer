@@ -59,11 +59,12 @@ body {
 }
 
 .messages {
-    width: calc(100vw - 305px);
+    width: calc(100vw - 325px);
     height: 100vh;
     text-align: left;
     display: inline-block;
     padding-left: 20px;
+    padding-right: 20px;
     overflow-y: scroll;
 }
 
@@ -71,8 +72,13 @@ body {
     clear: left;
     min-height: 56px; // height of image plus 20px padding
 }
+
 .message-container:first-child {
-  margin-top: 20px;
+    margin-top: 20px;
+}
+
+.message-container:last-child {
+    margin-bottom: 20px;
 }
 
 .message-container .user_icon {
@@ -123,9 +129,14 @@ body {
     line-height: 1.5;
 }
 
+.message-container .message .msg a {
+    overflow-wrap: anywhere;
+}
+
 .message-container .message-attachment {
     padding-left: 5px;
     border-left: 2px gray solid;
+    overflow-wrap: anywhere;
 }
 
 .message-container .message-attachment .service-name {
@@ -195,4 +206,9 @@ a:hover {
 
 @media screen {
     .print-only { display: none }
+}
+
+img.preview {
+    max-width: 100%;
+    height: auto;
 }
