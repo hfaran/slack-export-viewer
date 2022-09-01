@@ -64,7 +64,7 @@ def dm_id(id):
 
 @app.route("/mpim/<name>/")
 def mpim_name(name):
-    messages = flask._app_ctx_stack.mpims[name]
+    messages = flask._app_ctx_stack.mpims.get(name, list())
     channels = list(flask._app_ctx_stack.channels.keys())
     groups = list(flask._app_ctx_stack.groups.keys())
     dm_users = list(flask._app_ctx_stack.dm_users)
