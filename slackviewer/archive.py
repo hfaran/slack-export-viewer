@@ -69,7 +69,12 @@ def extract_archive(filepath):
         # Extract zip
         with zipfile.ZipFile(filepath) as zip:
             print("{} extracting to {}...".format(filepath, extracted_path))
-            zip.extractall(path=extracted_path)
+            for info in zip.infolist():
+                print(info.filename)
+                info.filename = info.filename.encode("cp437").decode("utf-8")
+                print(info.filename)
+                zip.extract(info,path=extracted_path)
+
 
         print("{} extracted to {}".format(filepath, extracted_path))
 
