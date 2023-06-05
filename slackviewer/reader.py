@@ -227,7 +227,7 @@ class Reader(object):
                         reply_list.append(reply)
                     reply_objects = []
                     for item in reply_list:
-                        item_lookup_key = (item['user'], item['ts'])
+                        item_lookup_key = (item.get('user'), item.get('ts'))
                         item_replies = user_ts_lookup.get(item_lookup_key)
                         if item_replies is not None:
                             reply_objects.extend(item_replies)
