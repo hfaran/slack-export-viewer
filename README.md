@@ -107,6 +107,21 @@ Run with -w to remove C:\Users\hamza\AppData\Local\Temp\_slackviewer
 Removing C:\Users\hamza\AppData\Local\Temp\_slackviewer...
 ```
 
+## Local Development
+
+After installing the requirements in requirements.txt and dev-requirements.txt, 
+define `FLASK_APP` as `main` and select any channels desired from an export:
+
+```bash
+export FLASK_APP=main && export SEV_CHANNELS=general
+```
+
+Start a development server by running `app.py` in the root directory:
+
+```bash
+python3 app.py -z /Absolute/path/to/archive.zip --debug
+```
+
 ## Acknowledgements
 
 Credit to Pieter Levels whose [blog post](https://levels.io/slack-export-to-html/) and PHP script I used as a jumping off point for this.
