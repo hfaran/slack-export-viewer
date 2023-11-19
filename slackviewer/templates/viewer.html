@@ -61,7 +61,13 @@
     {% endif %}
     <div class="messages">
         {% for message in messages %}
-            {{render_message(message, None, no_external_references)}}
+            {% if message.msg %}
+                {% if "Thread Reply:" in message.msg %}
+                    {{render_message(message, None, no_external_references, reply=True)}}
+                {% else %}
+                    {{render_message(message, None, no_external_references, reply=False)}}
+                {% endif %}
+            {% endif %}
         {% endfor %}
     </div>
 </div>

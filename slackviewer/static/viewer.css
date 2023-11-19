@@ -70,7 +70,7 @@ body {
 
 .message-container {
     clear: left;
-    min-height: 56px; // height of image plus 20px padding
+    min-height: 56px;
 }
 
 .message-container:first-child {
@@ -89,6 +89,18 @@ body {
     display: inline-block;
     vertical-align: top;
     margin-right: 0.65em;
+    float: left;
+}
+
+.message-container .user_icon_reply {
+    background-color: rgb(248, 244, 240);
+    width: 36px;
+    height: 36px;
+    border-radius: 0.2em;
+    display: inline-block;
+    vertical-align: top;
+    margin-right: 0.65em;
+    margin-left: 40px;
     float: left;
 }
 
@@ -116,6 +128,13 @@ body {
     width: calc(100% - 3em);
 }
 
+.message-container .reply {
+    vertical-align: top;
+    line-height: 1;
+    width: calc(100% - 3em);
+    margin-left: 80px;
+}
+
 .message-container .msg p {
     white-space: pre-wrap;
 }
@@ -129,7 +148,15 @@ body {
     line-height: 1.5;
 }
 
+.message-container .reply .msg {
+    line-height: 1.5;
+}
+
 .message-container .message .msg a {
+    overflow-wrap: anywhere;
+}
+
+.message-container .reply .msg a {
     overflow-wrap: anywhere;
 }
 
