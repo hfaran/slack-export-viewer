@@ -47,9 +47,13 @@ class Message(object):
 
     @property
     def time(self):
-        # Handle this: "ts": "1456427378.000002"
-        tsepoch = float(self._message["ts"].split(".")[0])
-        return str(datetime.datetime.fromtimestamp(tsepoch)).split('.')[0]
+        # Check if 'ts' key exists in the dictionary
+        if "ts" in self._message:
+            # Handle this: "ts": "1456427378.000002"
+            tsepoch = float(self._message["ts"].split(".")[0])
+            return str(datetime.datetime.fromtimestamp(tsepoch)).split('.')[0]
+        else:
+            return None  # or return a suitable default value
 
     @property
     def attachments(self):

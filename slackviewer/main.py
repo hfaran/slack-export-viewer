@@ -1,4 +1,5 @@
 import webbrowser
+import os
 
 import click
 import flask
@@ -7,8 +8,16 @@ from slackviewer.app import app
 from slackviewer.archive import extract_archive
 from slackviewer.reader import Reader
 from slackviewer.utils.click import envvar, flag_ennvar
+from flask_frozen import Freezer
 
+class CustomFreezer(Freezer):
 
+    cf_output_dir = None
+
+    @property
+    def root(self):
+        return u"{}".format(self.cf_output_dir)
+    
 def configure_app(app, archive, channels, no_sidebar, no_external_references, debug):
     app.debug = debug
     app.no_sidebar = no_sidebar
@@ -54,16 +63,38 @@ def configure_app(app, archive, channels, no_sidebar, no_external_references, de
               help="Runs in 'test' mode, i.e., this will do an archive extract, but will not start the server,"
                    " and immediately quit.")
 @click.option('--debug', is_flag=True, default=flag_ennvar("FLASK_DEBUG"))
-def main(port, archive, ip, no_browser, channels, no_sidebar, no_external_references, test, debug):
+@click.option("-o", "--output-dir", default="../html", type=click.Path(),
+              help="Output directory for HTML files")
+@click.option("--html-only", is_flag=True, default=False)
+def main(port, archive, ip, no_browser, channels, no_sidebar, no_external_references, test, debug, output_dir, html_only):
     if not archive:
         raise ValueError("Empty path provided for archive")
 
     configure_app(app, archive, channels, no_sidebar, no_external_references, debug)
 
-    if not no_browser and not test:
-        webbrowser.open("http://{}:{}".format(ip, port))
+    if html_only:
 
-    if not test:
+        # We need relative URLs, otherwise channel refs do not work
+        app.config["FREEZER_RELATIVE_URLS"] = True
+        # Use a custom subclass of Freezer which allows to overwrite
+        #  the output directory
+        freezer = CustomFreezer(app)
+        freezer.cf_output_dir = output_dir
+
+        # This tells freezer about the channel URLs
+        @freezer.register_generator
+        def channel_name():
+            for channel in flask._app_ctx_stack.channels:
+                yield {"name": channel}
+
+        freezer.freeze()
+
+        if not no_browser:
+            webbrowser.open("file:///{}/index.html"
+                            .format(os.path.abspath(output_dir)))
+
+    elif not no_browser and not test:
+        webbrowser.open("http://{}:{}".format(ip, port))
         app.run(
             host=ip,
             port=port
