@@ -7,16 +7,8 @@ import flask
 from slackviewer.app import app
 from slackviewer.archive import extract_archive
 from slackviewer.reader import Reader
+from slackviewer.freezer import CustomFreezer
 from slackviewer.utils.click import envvar, flag_ennvar
-from flask_frozen import Freezer
-
-class CustomFreezer(Freezer):
-
-    cf_output_dir = None
-
-    @property
-    def root(self):
-        return u"{}".format(self.cf_output_dir)
     
 def configure_app(app, archive, channels, no_sidebar, no_external_references, debug):
     app.debug = debug
@@ -36,7 +28,6 @@ def configure_app(app, archive, channels, no_sidebar, no_external_references, de
     top.dm_users = reader.compile_dm_users()
     top.mpims = reader.compile_mpim_messages()
     top.mpim_users = reader.compile_mpim_users()
-
 
 @click.command()
 @click.option('-p', '--port', default=envvar('SEV_PORT', '5000'),
@@ -66,18 +57,31 @@ def configure_app(app, archive, channels, no_sidebar, no_external_references, de
 @click.option("-o", "--output-dir", default="../html", type=click.Path(),
               help="Output directory for HTML files")
 @click.option("--html-only", is_flag=True, default=False)
-def main(port, archive, ip, no_browser, channels, no_sidebar, no_external_references, test, debug, output_dir, html_only):
+
+def main(
+    port, 
+    archive, 
+    ip, 
+    no_browser, 
+    channels, 
+    no_sidebar, 
+    no_external_references, 
+    test, 
+    debug, 
+    output_dir, 
+    html_only
+    ):
     if not archive:
         raise ValueError("Empty path provided for archive")
 
     configure_app(app, archive, channels, no_sidebar, no_external_references, debug)
 
     if html_only:
-
+        
         # We need relative URLs, otherwise channel refs do not work
         app.config["FREEZER_RELATIVE_URLS"] = True
-        # Use a custom subclass of Freezer which allows to overwrite
-        #  the output directory
+        
+        # Custom subclass of Freezer allows overwriting the output directory
         freezer = CustomFreezer(app)
         freezer.cf_output_dir = output_dir
 
