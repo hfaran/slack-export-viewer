@@ -58,6 +58,8 @@ Options:
                             extract, but will not start the server, and
                             immediately quit.
   --debug
+  --html-only               If you want static HTML only.
+  -o, --output-dir PATH     Output directory for static HTML. [default: `html_output`]   
   --help                    Show this message and exit.
 ```
 

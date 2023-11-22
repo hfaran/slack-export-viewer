@@ -51,12 +51,13 @@ def configure_app(app, archive, channels, no_sidebar, no_external_references, de
               default=flag_ennvar("SEV_NO_EXTERNAL_REFERENCES"),
               help="Removes all references to external css/js/images.")
 @click.option('--test', is_flag=True, default=flag_ennvar("SEV_TEST"),
-              help="Runs in 'test' mode, i.e., this will do an archive extract, but will not start the server,"
-                   " and immediately quit.")
+              help="Runs in 'test' mode, i.e., this will do an archive extract, "
+              "but will not start the server, and immediately quit.")
 @click.option('--debug', is_flag=True, default=flag_ennvar("FLASK_DEBUG"))
 @click.option("-o", "--output-dir", default="html_output", type=click.Path(),
-              help="Output directory for HTML files")
-@click.option("--html-only", is_flag=True, default=False)
+              help="Output directory for static HTML files.")
+@click.option("--html-only", is_flag=True, default=False, 
+              help="If you want static HTML only, set this.")
 
 def main(
     port, 
