@@ -51,5 +51,5 @@ def export(archive_dir):
         source_file=export_file_info["basename"],
         channels=channel_list
     )
-    outfile = open(export_file_info["stripped_name"] + '.html', 'w')
-    outfile.write(html.encode('utf-8'))
+    with open(export_file_info['stripped_name'] + '.html', 'w') as outfile:
+        outfile.write(html.encode('utf-8'))
