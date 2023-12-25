@@ -20,7 +20,7 @@ Slack team's export (instead of having to dive into hundreds of JSON files).
 
 `slack-export-viewer` is useful for small teams on a free Slack plan (limited to 10,000 messages) who overrun their budget and ocassionally need a nice interface to refer back to previous messages. You get a web interface to easily scroll through all channels in the export without having to look at individual JSON files per channel per day.
 
-`slack-export-viewer` can be used locally on one machine for yourself to explore an export or it can be run on a headless server (as it is a Flask web app) if you also want to serve the content to the rest of your team.
+`slack-export-viewer` can be used locally on one machine for yourself to explore an export, it can be run on a headless server (as it is a Flask web app) if you also want to serve the content to the rest of your team, or it can output HTML for deploying a static website.
 
 
 ## Installation
@@ -81,7 +81,7 @@ Point slack-export-viewer to the .zip file and let it do its magic
 slack-export-viewer -z /path/to/export/zip
 ```
 
-If everything went well, your archive will have been extracted, processed, and browser window will have opened showing your *#general* channel from the export.
+If everything went well, your archive will have been extracted and processed, and a browser window will have opened showing your *#general* channel from the export. Or, if the `html-only` flag was set, HTML files will be available in the `html-output` directory (or a different directory if specified).
 
 ## CLI
 
