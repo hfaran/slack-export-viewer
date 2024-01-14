@@ -3,4 +3,4 @@ Werkzeug<3.0.0
 Flask<3.0.0
 markdown2
 emoji>=2.0.0,<3.0
-frozen-flask
+frozen-flask==1.0.1
