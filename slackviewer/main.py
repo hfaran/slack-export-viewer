@@ -22,6 +22,7 @@ def configure_app(app, archive, channels, no_sidebar, no_external_references, de
     reader = Reader(path)
 
     top = flask._app_ctx_stack
+    top.path = path
     top.channels = reader.compile_channels(channels)
     top.groups = reader.compile_groups()
     top.dms = reader.compile_dm_messages()

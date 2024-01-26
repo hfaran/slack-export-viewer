@@ -1,3 +1,5 @@
+import os
+
 import flask
 
 
@@ -26,6 +28,11 @@ def channel_name(name):
                                  no_external_references=app.no_external_references)
 
 
+@app.route("/channel/<name>/attachments/<attachment>")
+def channel_name_attachment(name, attachment):
+    return flask.send_file(os.path.join(flask._app_ctx_stack.path, name, "attachments", attachment))
+
+
 @app.route("/group/<name>/")
 def group_name(name):
     messages = flask._app_ctx_stack.groups[name]
@@ -42,6 +49,11 @@ def group_name(name):
                                  mpim_users=mpim_users,
                                  no_sidebar=app.no_sidebar,
                                  no_external_references=app.no_external_references)
+
+
+@app.route("/group/<name>/attachments/<attachment>")
+def group_name_attachment(name, attachment):
+    return flask.send_file(os.path.join(flask._app_ctx_stack.path, name, "attachments", attachment))
 
 
 @app.route("/dm/<id>/")
@@ -62,6 +74,11 @@ def dm_id(id):
                                  no_external_references=app.no_external_references)
 
 
+@app.route("/dm/<name>/attachments/<attachment>")
+def dm_name_attachment(name, attachment):
+    return flask.send_file(os.path.join(flask._app_ctx_stack.path, name, "attachments", attachment))
+
+
 @app.route("/mpim/<name>/")
 def mpim_name(name):
     messages = flask._app_ctx_stack.mpims.get(name, list())
@@ -78,6 +95,11 @@ def mpim_name(name):
                                  mpim_users=mpim_users,
                                  no_sidebar=app.no_sidebar,
                                  no_external_references=app.no_external_references)
+
+
+@app.route("/mpim/<name>/attachments/<attachment>")
+def mpim_name_attachment(name, attachment):
+    return flask.send_file(os.path.join(flask._app_ctx_stack.path, name, "attachments", attachment))
 
 
 @app.route("/")
