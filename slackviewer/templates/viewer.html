@@ -61,7 +61,7 @@
     {% endif %}
     <div class="messages">
         {% for message in messages %}
-            {% if message.msg %}
+            {% if message.msg or message.files %}
                 {% if "Thread Reply:" in message.msg %}
                     {{render_message(message, None, no_external_references, reply=True)}}
                 {% else %}
