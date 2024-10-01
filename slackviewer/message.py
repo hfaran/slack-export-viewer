@@ -177,10 +177,15 @@ class LinkAttachment(object):
 
     @property
     def link(self):
+        ret = None
         if "from_url" in self._raw:
-            return self._raw["from_url"]
+            ret = self._raw["from_url"]
         else:
-            return self._raw.get("url_private")
+            ret = self._raw.get("url_private")
+        prefix_to_remove = "https://files.slack.com/files-pri/"
+        if ret.startswith(prefix_to_remove):
+            ret = "attachments/" + ret[len(prefix_to_remove):]
+        return ret
 
     @property
     def fields(self):
