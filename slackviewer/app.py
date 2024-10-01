@@ -34,13 +34,7 @@ def send_file(name, attachment):
     if os.path.exists(try_path):
         return flask.send_file(try_path)
     try_path = os.path.join(app.data.path, "__uploads", attachment)
-    if os.path.exists(try_path):
-        return flask.send_file(try_path)
-    dirname = os.path.dirname(try_path)
-    target = os.path.basename(try_path)
-    for fn in os.listdir(dirname):
-        if fn.lower() == target:
-            return flask.send_file(os.path.join(dirname, fn))
+    return flask.send_file(try_path)
     
 
 @app.route("/channel/<name>/attachments/<attachment>")
@@ -48,9 +42,9 @@ def channel_name_attachment(name, attachment):
     return send_file(name, attachment)
 
 
-@app.route("/channel/<name>/attachments/<path>/<attachment>")
+@app.route("/channel/<name>/__uploads/<path>/<attachment>")
 def channel_name_path_attachment(name, path, attachment):
-    return send_file(name, os.path.join(path.split("-")[1], attachment))
+    return send_file(name, os.path.join(path, attachment))
 
 
 @app.route("/group/<name>/")
@@ -76,9 +70,9 @@ def group_name_attachment(name, attachment):
     return send_file(name, attachment)
 
 
-@app.route("/group/<name>/attachments/<path>/<attachment>")
+@app.route("/group/<name>/__uploads/<path>/<attachment>")
 def group_name_path_attachment(name, path, attachment):
-    return send_file(name, os.path.join(path.split("-")[1], attachment))
+    return send_file(name, os.path.join(path, attachment))
 
 
 @app.route("/dm/<id>/")
@@ -104,9 +98,9 @@ def dm_name_attachment(name, attachment):
     return send_file(name, attachment)
 
 
-@app.route("/dm/<name>/attachments/<path>/<attachment>")
+@app.route("/dm/<name>/__uploads/<path>/<attachment>")
 def dm_name_path_attachment(name, path, attachment):
-    return send_file(name, os.path.join(path.split("-")[1], attachment))
+    return send_file(name, os.path.join(path, attachment))
 
 
 @app.route("/mpim/<name>/")
@@ -132,9 +126,9 @@ def mpim_name_attachment(name, attachment):
     return send_file(name, attachment)
 
 
-@app.route("/mpim/<name>/attachments/<path>/<attachment>")
+@app.route("/mpim/<name>/__uploads/<path>/<attachment>")
 def mpim_name_path_attachment(name, path, attachment):
-    return send_file(name, os.path.join(path.split("-")[1], attachment))
+    return send_file(name, os.path.join(path, attachment))
 
 
 @app.route("/")

@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 import datetime
 import logging
 import emoji
+import os
 
 class Message(object):
 
@@ -184,7 +185,7 @@ class LinkAttachment(object):
             ret = self._raw.get("url_private")
         prefix_to_remove = "https://files.slack.com/files-pri/"
         if ret.startswith(prefix_to_remove):
-            ret = "attachments/" + ret[len(prefix_to_remove):]
+            ret = "__uploads/" + os.path.dirname(ret[len(prefix_to_remove):]).split("-")[1] + "/" + self._raw["name"]
         return ret
 
     @property
