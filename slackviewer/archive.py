@@ -124,9 +124,12 @@ def get_export_info(archive_name):
     extracted_path = extract_archive(archive_name)
     base_filename = basename(archive_name)
     (noext_filename, _) = splitext(base_filename)
-    # Typical extract name: "My Friends and Family Slack export Jul 21 2018 - Sep 06 2018"
-    # If that's not the format, we will just fall back to the extension-free filename.
-    (workspace_name, _) = noext_filename.split(" Slack export ", 1)
+    workspace_name = base_filename
+    # In case the archive is a zip file
+    if not os.path.isdir(extracted_path):
+        # Typical extract name: "My Friends and Family Slack export Jul 21 2018 - Sep 06 2018"
+        # If that's not the format, we will just fall back to the extension-free filename.
+        (workspace_name, _) = noext_filename.split(" Slack export ", 1)
     return {
         "readable_path": extracted_path,
         "basename": base_filename,
