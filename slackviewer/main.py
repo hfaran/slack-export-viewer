@@ -9,8 +9,9 @@ from slackviewer.archive import extract_archive
 from slackviewer.reader import Reader
 from slackviewer.freezer import CustomFreezer
 from slackviewer.utils.click import envvar, flag_ennvar
-    
-def configure_app(app, archive, channels, no_sidebar, no_external_references, debug):
+
+
+def configure_app(app, archive, channels, no_sidebar, no_external_references, debug, since):
     app.debug = debug
     app.no_sidebar = no_sidebar
     app.no_external_references = no_external_references
@@ -19,7 +20,7 @@ def configure_app(app, archive, channels, no_sidebar, no_external_references, de
     app.config["PROPAGATE_EXCEPTIONS"] = True
 
     path = extract_archive(archive)
-    reader = Reader(path)
+    reader = Reader(path, debug, since)
 
     top = flask._app_ctx_stack
     top.path = path
@@ -29,6 +30,12 @@ def configure_app(app, archive, channels, no_sidebar, no_external_references, de
     top.dm_users = reader.compile_dm_users()
     top.mpims = reader.compile_mpim_messages()
     top.mpim_users = reader.compile_mpim_users()
+
+    # remove any empty channels & groups. DM's are needed for now
+    # since the application loads the first
+    top.channels = {k: v for k, v in top.channels.items() if v}
+    top.groups = {k: v for k, v in top.groups.items() if v}
+
 
 @click.command()
 @click.option('-p', '--port', default=envvar('SEV_PORT', '5000'),
@@ -57,32 +64,34 @@ def configure_app(app, archive, channels, no_sidebar, no_external_references, de
 @click.option('--debug', is_flag=True, default=flag_ennvar("FLASK_DEBUG"))
 @click.option("-o", "--output-dir", default="html_output", type=click.Path(),
               help="Output directory for static HTML files.")
-@click.option("--html-only", is_flag=True, default=False, 
+@click.option("--html-only", is_flag=True, default=False,
               help="If you want static HTML only, set this.")
+@click.option("--since", default=None, type=click.DateTime(formats=["%Y-%m-%d"]),
+              help="Only show messages since this date.")
 
 def main(
-    port, 
-    archive, 
-    ip, 
-    no_browser, 
-    channels, 
-    no_sidebar, 
-    no_external_references, 
-    test, 
-    debug, 
-    output_dir, 
-    html_only
-    ):
+    port,
+    archive,
+    ip,
+    no_browser,
+    channels,
+    no_sidebar,
+    no_external_references,
+    test,
+    debug,
+    output_dir,
+    html_only,
+    since,
+):
     if not archive:
         raise ValueError("Empty path provided for archive")
 
-    configure_app(app, archive, channels, no_sidebar, no_external_references, debug)
+    configure_app(app, archive, channels, no_sidebar, no_external_references, debug, since)
 
     if html_only:
-        
         # We need relative URLs, otherwise channel refs do not work
         app.config["FREEZER_RELATIVE_URLS"] = True
-        
+
         # Custom subclass of Freezer allows overwriting the output directory
         freezer = CustomFreezer(app)
         freezer.cf_output_dir = output_dir

@@ -4,6 +4,8 @@ import glob
 import io
 import json
 import os
+import datetime
+import sys
 
 from slackviewer.formatter import SlackFormatter
 from slackviewer.message import Message
@@ -15,8 +17,10 @@ class Reader(object):
     Reader object will read all of the archives' data from the json files
     """
 
-    def __init__(self, PATH):
+    def __init__(self, PATH, debug, since):
         self._PATH = PATH
+        self._debug = debug
+        self._since = since
         # TODO: Make sure this works
         with io.open(os.path.join(self._PATH, "users.json"), encoding="utf8") as f:
             self.__USER_DATA = {u["id"]: User(u) for u in json.load(f)}
@@ -178,11 +182,11 @@ class Reader(object):
             for day in sorted(day_files):
                 with io.open(os.path.join(self._PATH, day), encoding="utf8") as f:
                     # loads all messages
-                    day_messages = json.load(f)   
+                    day_messages = json.load(f)
 
                     # sorts the messages in the json file
-                    day_messages.sort(key=Reader._extract_time) 
-                 
+                    day_messages.sort(key=Reader._extract_time)
+
                     messages.extend([Message(formatter, d) for d in day_messages])
 
             chats[name] = messages
@@ -261,6 +265,10 @@ class Reader(object):
                 if isinstance(item, Message):
                     data_with_sorted_threads.append(item)
             channel_data[channel_name] = data_with_sorted_threads.copy()
+
+        if self._since:
+            channel_data = self._message_filter_timeframe(channel_data.copy())
+
         return channel_data
 
     def _read_from_json(self, file):
@@ -279,3 +287,64 @@ class Reader(object):
                 return {u["id"]: u for u in json.load(f)}
         except IOError:
             return {}
+
+    def _message_filter_timeframe(self, channel_data):
+        """
+        It might be more efficient to filter the messages in the thread sorting
+        loop. Yet, this is a more straightforward approach, especially factoring
+        in the thread/non-thread message ids etc.
+
+        Messages & threads need to be provided in a sorted form
+        """
+        for channel in channel_data.keys():
+            messages_in_thread = []
+            last_thread_message_in_timeframe = False
+            delete_messages = []
+
+            for location, message in enumerate(channel_data[channel]):
+                is_msg_in_timeframe = self._message_in_timeframe(message)
+                msg_text = message._message.get('text')
+
+                # Message can be empty
+                if not msg_text:
+                    is_thread_msg = False
+                else:
+                    is_thread_msg = msg_text.startswith("**Thread Reply:**")
+
+                # new main message
+                if not is_thread_msg:
+                    if not last_thread_message_in_timeframe:
+                        delete_messages.extend(messages_in_thread)
+                    messages_in_thread = [location]
+                # Thread message
+                else:
+                    if last_thread_message_in_timeframe and not is_msg_in_timeframe:
+                        print("ERROR: This should never happen. sorting is broken...")
+                        sys.exit(1)
+
+                    messages_in_thread.append(location)
+
+                last_thread_message_in_timeframe = is_msg_in_timeframe
+
+            # Last thread/message...
+            if not last_thread_message_in_timeframe:
+                delete_messages.extend(messages_in_thread)
+
+            # Remove all messages that are not in the timeframe
+            for loc in sorted(delete_messages, reverse=True):
+                del channel_data[channel][loc]
+
+        return channel_data
+
+
+    def _message_in_timeframe(self, msg):
+        """
+        Returns true if message timestamp is older as since
+        """
+        if not self._since:
+            return True
+
+        ts = msg._message.get('ts')
+        ts_obj = datetime.datetime.fromtimestamp(float(ts))
+
+        return self._since < ts_obj
