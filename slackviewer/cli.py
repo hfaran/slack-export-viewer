@@ -33,12 +33,16 @@ def clean(wet):
 
 
 @cli.command(help="Generates a single-file printable export for an archive file or directory")
+@click.option('--debug', is_flag=True, default=flag_ennvar("FLASK_DEBUG"))
+@click.option("--since", default=None, type=click.DateTime(formats=["%Y-%m-%d"]),
+              help="Only show messages since this date.")
 @click.argument('archive_dir')
-def export(archive_dir):
+
+def export(archive_dir, debug, since):
     css = pkgutil.get_data('slackviewer', 'static/viewer.css').decode('utf-8')
     tmpl = Environment(loader=PackageLoader('slackviewer')).get_template("export_single.html")
     export_file_info = get_export_info(archive_dir)
-    r = Reader(export_file_info["readable_path"])
+    r = Reader(export_file_info["readable_path"], debug, since)
     channel_list = sorted(
         [{"channel_name": k, "messages": v} for (k, v) in r.compile_channels().items()],
         key=lambda d: d["channel_name"]
@@ -51,5 +55,7 @@ def export(archive_dir):
         source_file=export_file_info["basename"],
         channels=channel_list
     )
-    with open(export_file_info['stripped_name'] + '.html', 'w') as outfile:
+    with open(export_file_info['stripped_name'] + '.html', 'wb') as outfile:
         outfile.write(html.encode('utf-8'))
+
+    print("Exported to {}.html".format(export_file_info['stripped_name']))

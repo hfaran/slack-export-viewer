@@ -4,6 +4,7 @@ import datetime
 import logging
 import emoji
 
+
 class Message(object):
 
     _DEFAULT_USER_ICON_SIZE = 72
@@ -11,6 +12,13 @@ class Message(object):
     def __init__(self, formatter, message):
         self._formatter = formatter
         self._message = message
+
+    def __repr__(self):
+        message = self._message.get("text")
+        if message and len(message) > 20:
+            message = message[:20] + "..."
+
+        return f"<Message({self.username}@{self.time}: {message})>"
 
     ##############
     # Properties #
@@ -116,7 +124,7 @@ class Message(object):
         return self._message.get("subtype")
 
 
-class LinkAttachment(object):
+class LinkAttachment():
     """
     Wrapper class for entries in either the "files" or "attachments" arrays.
     """
