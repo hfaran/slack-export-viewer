@@ -59,7 +59,9 @@ Options:
                             immediately quit.
   --debug
   --html-only               If you want static HTML only.
-  -o, --output-dir PATH     Output directory for static HTML. [default: `html_output`]   
+  -o, --output-dir PATH     Output directory for static HTML. [default: `html_output`]
+  --html-only               If you want static HTML only, set this.
+  --since [%Y-%m-%d]        Only show messages since this date.
   --help                    Show this message and exit.
 ```
 
@@ -96,6 +98,7 @@ Options:
 
 Commands:
   clean  Cleans up any temporary files (including...
+  export  Generates a single-file printable export for an archive file or...
 ```
 
 ### Examples
