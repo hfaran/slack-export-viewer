@@ -11,18 +11,21 @@
     {% endif %}
 {%- endmacro %}
 
-{% macro render_message(message, preview_size=None, no_external_references=False, reply=False) -%}
-    <div class="message-container{%if message.subtype %} {{message.subtype}} {% elif reply.subtype %} {{reply.subtype}} {%endif%}">
+{% macro render_message(message, preview_size=None, no_external_references=False) -%}
+    <div class="message-container{%if message.subtype %} {{message.subtype}} {%endif%}">
         <div id="{{ message.id }}">
-            {% if not no_external_references and not reply %}
-                {% if message.img %}<img src="{{ message.img }}" class="user_icon" />{%else%}<div class="user_icon"></div>{%endif%}
-            {% elif not no_external_references and reply %}
-                {% if message.img %}<img src="{{ message.img }}" class="user_icon_reply" />{%else%}<div class="user_icon_reply"></div>{%endif%}
+            {% if not message.is_recent_msg %}
+                <div class="old-message">
             {% endif %}
-            {% if not reply %}
+            {% if not message.is_thread_msg %}
                 <div class="message">
             {% else %}
                 <div class="reply">
+            {% endif %}
+            {% if not no_external_references and not message.is_thread_msg %}
+                {% if message.img %}<img src="{{ message.img }}" class="user_icon" />{%else%}<div class="user_icon"></div>{%endif%}
+            {% elif not no_external_references and message.is_thread_msg %}
+                {% if message.img %}<img src="{{ message.img }}" class="user_icon_reply" />{%else%}<div class="user_icon_reply"></div>{%endif%}
             {% endif %}
                 <div class="username">{{ message.username }}
                     {%if message.user.email%} <span class="print-only user-email">({{message.user.email}})</span>{%endif%}

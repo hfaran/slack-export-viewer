@@ -5,7 +5,6 @@ import io
 import json
 import os
 import datetime
-import sys
 
 from slackviewer.formatter import SlackFormatter
 from slackviewer.message import Message
@@ -257,6 +256,8 @@ class Reader(object):
                     msgtext = reply._message.get("text")
                     if not msgtext or not msgtext.startswith("**Thread Reply:**"):
                         reply._message["text"] = "**Thread Reply:** {}".format(msgtext)
+                        reply.is_thread_msg = True
+
                     channel_data[channel_name].insert(location, reply)
                     location += 1
             # threads location hotfix
@@ -303,25 +304,19 @@ class Reader(object):
 
             for location, message in enumerate(channel_data[channel]):
                 is_msg_in_timeframe = self._message_in_timeframe(message)
-                msg_text = message._message.get('text')
 
-                # Message can be empty
-                if not msg_text:
-                    is_thread_msg = False
-                else:
-                    is_thread_msg = msg_text.startswith("**Thread Reply:**")
+                # Update message object for representation differences
+                # at rendering
+                if not is_msg_in_timeframe:
+                    message.is_recent_msg = False
 
                 # new main message
-                if not is_thread_msg:
+                if not message.is_thread_msg:
                     if not last_thread_message_in_timeframe:
                         delete_messages.extend(messages_in_thread)
                     messages_in_thread = [location]
                 # Thread message
                 else:
-                    if last_thread_message_in_timeframe and not is_msg_in_timeframe:
-                        print("ERROR: This should never happen. sorting is broken...")
-                        sys.exit(1)
-
                     messages_in_thread.append(location)
 
                 last_thread_message_in_timeframe = is_msg_in_timeframe
@@ -334,8 +329,12 @@ class Reader(object):
             for loc in sorted(delete_messages, reverse=True):
                 del channel_data[channel][loc]
 
-        return channel_data
+        # remove channels without recent message
+        for channel in list(channel_data.keys()):
+            if not channel_data[channel]:
+                del channel_data[channel]
 
+        return channel_data
 
     def _message_in_timeframe(self, msg):
         """

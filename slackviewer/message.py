@@ -12,6 +12,10 @@ class Message(object):
     def __init__(self, formatter, message):
         self._formatter = formatter
         self._message = message
+        # default is False, we update it later if its a thread message
+        self.is_thread_msg = False
+        # used only with --since flag. Default to True, will update in the function
+        self.is_recent_msg = True
 
     def __repr__(self):
         message = self._message.get("text")
