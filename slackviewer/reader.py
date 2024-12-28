@@ -5,6 +5,7 @@ import io
 import json
 import os
 import datetime
+import pathlib
 
 from slackviewer.formatter import SlackFormatter
 from slackviewer.message import Message
@@ -20,6 +21,8 @@ class Reader(object):
         self._PATH = PATH
         self._debug = debug
         self._since = since
+        # slack name that is in the url https://<slackname>.slack.com
+        self._slack_name = self._get_slack_name()
         # TODO: Make sure this works
         with io.open(os.path.join(self._PATH, "users.json"), encoding="utf8") as f:
             self.__USER_DATA = {u["id"]: User(u) for u in json.load(f)}
@@ -164,6 +167,10 @@ class Reader(object):
         empty_dms = []
         formatter = SlackFormatter(self.__USER_DATA, data)
 
+        # Channel name to channel id mapping. Needed to create a messages
+        # permalink when using slackdump
+        channel_name_to_id = {c["name"]: c["id"] for c in data.values()}
+
         for name in names:
 
             # gets path to dm directory that holds the json archive
@@ -186,7 +193,8 @@ class Reader(object):
                     # sorts the messages in the json file
                     day_messages.sort(key=Reader._extract_time)
 
-                    messages.extend([Message(formatter, d) for d in day_messages])
+                    c_id = channel_name_to_id[name]
+                    messages.extend([Message(formatter, d, c_id, self._slack_name) for d in day_messages])
 
             chats[name] = messages
         chats = self._build_threads(chats)
@@ -254,7 +262,7 @@ class Reader(object):
                 location = grouping[0] + 1
                 for reply in grouping[1]:
                     msgtext = reply._message.get("text")
-                    if not msgtext or not msgtext.startswith("**Thread Reply:**"):
+                    if not msgtext or not reply.is_thread_msg:
                         reply._message["text"] = "**Thread Reply:** {}".format(msgtext)
                         reply.is_thread_msg = True
 
@@ -347,3 +355,15 @@ class Reader(object):
         ts_obj = datetime.datetime.fromtimestamp(float(ts))
 
         return self._since < ts_obj
+
+    def _get_slack_name(self):
+        """
+        Returns the slack name that should be https://<slackname>.slack.com
+
+        Since slackdump doesn't contain the name, the function assumed that the
+        name of the zip file or directory is the slack name. This is a weak
+        assumption.
+
+        It's name ise used for the permalink generation.
+        """
+        return pathlib.Path(self._PATH).stem
