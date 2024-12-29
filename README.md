@@ -70,10 +70,17 @@ Options:
 
 ### 1) Grab your Slack team's export
 
+#### Option 1: official Slack export
 * Visit [https://my.slack.com/services/export](https://my.slack.com/services/export)
 * Create an export
 * Wait for it to complete
 * Refresh the page and download the export (.zip file) into whatever directory
+
+#### Option 2: slackdump
+* Download slackdump from https://github.com/rusq/slackdump/
+* Setup authentication as outlined in the slackdump documentation
+* Run slackdump and export messages in the "Standard" format as either a directory or zip file.
+    * `slack-export-viewer` can also use the director without zip file.
 
 ### 2) Point `slack-export-viewer` to it
 
