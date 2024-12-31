@@ -92,32 +92,72 @@ slack-export-viewer -z /path/to/export/zip
 
 If everything went well, your archive will have been extracted and processed, and a browser window will have opened showing your *#general* channel from the export. Or, if the `html-only` flag was set, HTML files will be available in the `html-output` directory (or a different directory if specified).
 
+
 ## CLI
 
 There is now a CLI included as well. Currently the one command you can use is clearing the cache from slack-export-viewer from your %TEMP% directory; see usage:
 
-```
-└———→ slack-export-viewer-cli --help
-Usage: slack-export-viewer-cli [OPTIONS] COMMAND [ARGS]...
+```bash
+$ slack-export-viewer-cli --help
+Usage: cli.py [OPTIONS] COMMAND [ARGS]...
 
 Options:
   --help  Show this message and exit.
 
 Commands:
-  clean  Cleans up any temporary files (including...
+  clean   Cleans up any temporary files (including cached output by...
   export  Generates a single-file printable export for an archive file or...
 ```
 
+Export:
+```bash
+$ slack-export-viewer-cli export --help
+Usage: cli.py export [OPTIONS] ARCHIVE_DIR
+
+  Generates a single-file printable export for an archive file or directory
+
+Options:
+  --debug
+  --since [%Y-%m-%d]   Only show messages since this date.
+  --template FILENAME  Custom single file export template
+  --help               Show this message and exit.
+```
+An example template can be found in the repositories [`slackviewer/templates/example_template_single_export.html`](https://github.com/hfaran/slack-export-viewer/tree/master/slackviewer/templates/example_template_single_export.html) file
+
+Clean
+```bash
+$ slack-export-viewer-cli clean --help
+Usage: cli.py clean [OPTIONS]
+
+  Cleans up any temporary files (including cached output by slack-export-
+  viewer)
+
+Options:
+  -w, --wet  Actually performs file deletion
+  --help     Show this message and exit.
+```
+
+
 ### Examples
 
-```
-┌— hamza@AURORAONE C:\Users\hamza
-└———→ slack-export-viewer-cli clean
+Clean:
+```bash
+$ slack-export-viewer-cli clean
 Run with -w to remove C:\Users\hamza\AppData\Local\Temp\_slackviewer
-┌— hamza@AURORAONE C:\Users\hamza
-└———→ slack-export-viewer-cli clean -w
+$ slack-export-viewer-cli clean -w
 Removing C:\Users\hamza\AppData\Local\Temp\_slackviewer...
 ```
+
+Export:
+```bash
+$ slack-export-viewer-cli export \
+    --since $(date -d "2 days ago" '+%Y-%m-%d') \
+    --template /tmp/example_template_single_export.html \
+    /tmp/slack-export
+Archive already extracted. Viewing from /tmp/slack-export...
+Exported to slack-export.html
+```
+
 
 ## Local Development
 

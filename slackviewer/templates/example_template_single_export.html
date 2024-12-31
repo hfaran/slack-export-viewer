@@ -1,0 +1,370 @@
+{% macro render_thumbnail(parent, thumbnail_size=None, no_external_references=False) -%}
+    {% set thumb = parent.thumbnail(thumbnail_size) %}
+    {% if not no_external_references and thumb %}
+        <a href="{{parent.link}}">
+            <img class="preview" src="{{thumb.src}}"
+                {% if thumb.width %}width="{{thumb.width}}"{% endif %}
+                {% if thumb.height %} height="{{thumb.height}}"{% endif %} />
+        </a>
+    {% else %}
+        <!-- no preview available -->
+    {% endif %}
+{%- endmacro %}
+
+{% macro render_message(message, preview_size=None, no_external_references=False) -%}
+    <div class="message-container{%if message.subtype %} {{message.subtype}} {%endif%}">
+        <div id="{{ message.id }}">
+            {% if not message.is_recent_msg %}
+                <div class="old-message">
+            {% endif %}
+            {% if not message.is_thread_msg %}
+                <div class="message">
+            {% else %}
+                <div class="reply">
+            {% endif %}
+            {% if not no_external_references and not message.is_thread_msg %}
+                {% if message.img %}<img src="{{ message.img }}" class="user_icon" />{%else%}<div class="user_icon"></div>{%endif%}
+            {% elif not no_external_references and message.is_thread_msg %}
+                {% if message.img %}<img src="{{ message.img }}" class="user_icon_reply" />{%else%}<div class="user_icon_reply"></div>{%endif%}
+            {% endif %}
+                <div class="username">{{ message.username }}
+                    {%if message.user.email%} <span class="print-only user-email">({{message.user.email}})</span>{%endif%}
+                </div>
+                <a href="#{{ message.id}}"><div class="time">{{ message.time }}</div></a>
+                <div class="msg">
+                    {{ message.msg|safe }}
+                    {% for attachment in message.attachments -%}
+                        <div class="message-attachment"
+                            {%if attachment.color %}style="border-color: #{{attachment.color}}"{%endif%}>
+                            {%if attachment.service_name %}<div class="service-name">{{ attachment.service_name }}</div>{%endif%}
+                            {%if attachment.author_name%}
+                                <div class="attachment-author">
+                                    {% if not no_external_references %}
+                                        <img src="{{attachment.author_icon}}" class="icon">
+                                    {% endif %}
+                                    {%if attachment.author_link%}<a href="{{attachment.author_link}}">{%endif%}
+                                    {{attachment.author_name}}
+                                    {%if attachment.author_link%}</a><span class="print-only">({{attachment.author_link}})</span>{%endif%}
+                                </div>
+                            {%endif%}
+                            {% if not no_external_references %}
+                                {%if attachment.pretext %}<div class="pre-text">{{attachment.pretext}}</div>{%endif%}
+                                <div class="link-title"><a href="{{ attachment.title_link }}">{{ attachment.title }}</a></div>
+                                <div class="link-text">
+                                    {{attachment.text}}
+                                </div>
+                                {%for field in attachment.fields %}
+                                    <div class="attachment-field">
+                                        {%if field.title %}<div class="field-title">{{field.title}}</div>{%endif%}
+                                        {{field.value}}
+                                    </div>
+                                {%endfor%}
+                                {{ render_thumbnail(attachment, preview_size) }}
+                                {% if attachment.original_url %}
+                                    <div class="print-only">Original URL: {{attachment.original_url}}</div>
+                                {% endif %}
+                                {%if attachment.footer%}
+                                    <div class="attachment-footer">
+                                        <img src="{{attachment.footer_icon}}" class="icon" />
+                                        {{attachment.footer}}
+                                    </div>
+                                {%endif%}
+                            {%endif%}
+                        </div>
+                    {% endfor  %}
+                    {% for file in message.files  -%}
+                        <div class="message-upload">
+                            <div class="link-title"><a href="{{ file.link }}">{{ file.title }}</a></div>
+                            {% if not no_external_references %}
+                                {{ render_thumbnail(file, preview_size) }}
+                            {%endif%}
+                        </div>
+                    {% endfor %}
+                    {% for reaction in message.reactions %}
+                        <div class="message-reaction">
+                        {{ reaction.name }} {{ reaction.usernames|join(', ') }}
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+{%- endmacro %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Slack Export - {{ workspace_name }}</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css?family=Lato:400,900');
+
+        html {
+            font-family: 'Lato', sans-serif;
+        }
+
+        body {
+            padding: 0;
+            margin: 0;
+        }
+
+        #slack-archive-viewer {
+            padding: 0;
+            margin: 0;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        #sidebar {
+          display: inline-block;
+          width: 280px;
+          color: white;
+          text-align: left;
+          background-color: #4D394B;
+          z-index: 10;
+          overflow-y: scroll;
+          overflow-x: auto;
+          height: 100vh;
+          user-select: none;
+        }
+
+        #sidebar a {
+            color: white;
+            font-size: 14px;
+        }
+
+        #sidebar h3 {
+          margin: 20px 20px;
+          color: white;
+          font-weight: 900;
+        }
+
+        #sidebar h3:hover {
+          cursor: pointer;
+        }
+
+        #sidebar h3::after {
+          content: '❯ ';
+          display: inline-block;
+          -webkit-transform: rotate(90deg);
+          transform: rotate(90deg);
+          margin-left: 15px;
+        }
+
+        #sidebar h3.arrow::after {
+          margin-left: 10px;
+          -webkit-transform: none;
+          transform: none;
+        }
+
+        .messages {
+            width: calc(100vw - 325px);
+            height: 100vh;
+            text-align: left;
+            display: inline-block;
+            padding-left: 20px;
+            padding-right: 20px;
+            overflow-y: scroll;
+        }
+
+        .message-container {
+            clear: left;
+            min-height: 56px;
+        }
+
+        .message-container:first-child {
+            margin-top: 20px;
+        }
+
+        .message-container:last-child {
+            margin-bottom: 20px;
+        }
+
+        .message-container .user_icon {
+            background-color: rgb(248, 244, 240);
+            width: 36px;
+            height: 36px;
+            border-radius: 0.2em;
+            display: inline-block;
+            vertical-align: top;
+            margin-right: 0.65em;
+            float: left;
+        }
+
+        .message-container .user_icon_reply {
+            background-color: rgb(248, 244, 240);
+            width: 36px;
+            height: 36px;
+            border-radius: 0.2em;
+            display: inline-block;
+            vertical-align: top;
+            margin-right: 0.65em;
+            margin-left: 40px;
+            float: left;
+        }
+
+        .message-container .time {
+            display: inline-block;
+            color: rgb(200, 200, 200);
+            margin-left: 0.5em;
+        }
+
+        .message-container .username {
+            display: inline-block;
+            font-weight: 600;
+            line-height: 1;
+        }
+
+        .message-container .user-email {
+            font-weight: normal;
+            font-style: italic;
+        }
+
+        .message-container .message {
+            display: inline-block;
+            vertical-align: top;
+            line-height: 1;
+            width: calc(100% - 3em);
+        }
+
+        .message-container .reply {
+            vertical-align: top;
+            line-height: 1;
+            width: calc(100% - 3em);
+            margin-left: 80px;
+        }
+
+        .message-container .msg p {
+            white-space: pre-wrap;
+        }
+
+        .message-container .msg pre {
+            background-color: #E6E5DF;
+            white-space: pre-wrap;
+        }
+
+        .message-container .message .msg {
+            line-height: 1.5;
+        }
+
+        .message-container .reply .msg {
+            line-height: 1.5;
+        }
+
+        .message-container .message .msg a {
+            overflow-wrap: anywhere;
+        }
+
+        .message-container .reply .msg a {
+            overflow-wrap: anywhere;
+        }
+
+        .message-container .message-attachment {
+            padding-left: 5px;
+            border-left: 2px gray solid;
+            overflow-wrap: anywhere;
+        }
+
+        .message-container .message-attachment .service-name {
+            color: #999999;
+        }
+
+        .message-container .icon {
+            max-width: 10px;
+        }
+
+        .message-container .old-message {
+            color: #999999;
+        }
+
+        .channel_join .msg, .channel_topic .msg,
+        .bot_add .msg, .app_conversation_join .msg {
+            font-style: italic;
+        }
+
+        .attachment-footer {
+            font-size: small;
+        }
+
+        .list {
+            margin: 0;
+            padding: 0;
+            list-style-type: none;
+        }
+
+        .list li {
+            padding: 4px 20px;
+        }
+
+        .list li a {
+          width: 100%;
+          padding: 10px 20px;
+        }
+
+        .list li.active {
+            background-color: #4C9689;
+        }
+
+        .list li.active:hover {
+            background-color: #4C9689;
+        }
+
+        .list li:hover {
+            text-decoration: none;
+            background: #3E313C;
+        }
+
+        .list li a:hover {
+            text-decoration: none;
+        }
+
+        a:link,
+        a:visited,
+        a:active {
+            color: #2a80b9;
+            text-decoration: none;
+        }
+
+        a:hover {
+            color: #439fe0;
+            text-decoration: underline;
+        }
+
+        .close {
+          display: none;
+        }
+
+        @media screen {
+            .print-only { display: none }
+        }
+
+        img.preview {
+            max-width: 100%;
+            height: auto;
+        }
+        .channel-block {
+            page-break-after: always;
+        }
+        .export-metadata {
+            line-height: 2;
+        }
+    </style>
+</head>
+<body>
+    <h1>TEMPLATE Export of Slack Workspace "{{workspace_name}}"</h1>
+    <table class="export-metadata">
+        <tr><td>Generated from file:</td><td><b>{{source_file}}</b></td></tr>
+        <tr><td>Generated on:</td><td> <b>{{generated_on.strftime("%F %H:%M:%S")}}</b></td></tr>
+    </table>
+    </div>
+    {% for channel in channels %}
+    <div class="channel-block">
+        <h2>Messages in #{{channel.channel_name}}</h2>
+        <div class="message-list">
+            {% for message in channel.messages %}
+                {{render_message(message)}}
+            {% endfor %}
+        </div>
+    </div>
+    {% endfor %}
+</body>
+</html>
