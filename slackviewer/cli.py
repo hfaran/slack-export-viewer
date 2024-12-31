@@ -36,11 +36,15 @@ def clean(wet):
 @click.option('--debug', is_flag=True, default=flag_ennvar("FLASK_DEBUG"))
 @click.option("--since", default=None, type=click.DateTime(formats=["%Y-%m-%d"]),
               help="Only show messages since this date.")
+@click.option("--template", default=None, type=click.File('r'), help="Custom single file export template")
 @click.argument('archive_dir')
 
-def export(archive_dir, debug, since):
+def export(archive_dir, debug, since, template):
     css = pkgutil.get_data('slackviewer', 'static/viewer.css').decode('utf-8')
+
     tmpl = Environment(loader=PackageLoader('slackviewer')).get_template("export_single.html")
+    if template:
+        tmpl = Environment(loader=PackageLoader('slackviewer')).from_string(template.read())
     export_file_info = get_export_info(archive_dir)
     r = Reader(export_file_info["readable_path"], debug, since)
     channel_list = sorted(
