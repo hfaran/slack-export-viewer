@@ -356,6 +356,25 @@
         <tr><td>Generated on:</td><td> <b>{{generated_on.strftime("%F %H:%M:%S")}}</b></td></tr>
     </table>
     </div>
+    {% for dm in dms %}
+    <div class="message-block">
+        <h2>DM with {{dm.name}}</h2>
+        <div class="message-list">
+            {% for message in dm.messages %}
+                {{render_message(message)}}
+            {% endfor %}
+        </div>
+    </div>
+    {% endfor %}
+    {% for mpim in mpims %}
+    <div class="message-block">
+        <h2>Group DM with {{mpim.name}}</h2>
+        <div class="message-list">
+            {% for message in mpim.messages %}
+                {{render_message(message)}}
+            {% endfor %}
+        </div>
+    {% endfor %}
     {% for channel in channels %}
     <div class="channel-block">
         <h2>Messages in #{{channel.channel_name}}</h2>
