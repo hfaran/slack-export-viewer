@@ -19,7 +19,7 @@ class SlackFormatter(object):
     # Class-level constants for precompilation of frequently-reused regular expressions
     # URL detection relies on http://stackoverflow.com/a/1547940/1798683
     _LINK_PAT = re.compile(r"<(https|http|mailto):[A-Za-z0-9_\.\-\/\?\,\=\#\:\@]+\|[^>]+>")
-    _MENTION_PAT = re.compile(r"<((?:#C|@[UB])\w+)(?:\|([A-Za-z0-9.-_]+))?>")
+    _MENTION_PAT = re.compile(r"<((?:#C|@[UB])\w+)(?:\|([A-Za-z0-9.-_]*))?>")
     _HASHTAG_PAT = re.compile(r"(^| )#[A-Za-z][\w\.\-\_]+( |$)")
 
     def __init__(self, USER_DATA, CHANNEL_DATA):

@@ -9,13 +9,17 @@ class Message(object):
 
     _DEFAULT_USER_ICON_SIZE = 72
 
-    def __init__(self, formatter, message):
+    def __init__(self, formatter, message, channel_id, slack_name):
         self._formatter = formatter
         self._message = message
         # default is False, we update it later if its a thread message
         self.is_thread_msg = False
         # used only with --since flag. Default to True, will update in the function
         self.is_recent_msg = True
+        # Channel id is not part of self._message - at least not with slackdump
+        self.channel_id = channel_id
+        # slack name that is in the url https://<slackname>.slack.com
+        self.slack_name = slack_name
 
     def __repr__(self):
         message = self._message.get("text")
@@ -126,6 +130,13 @@ class Message(object):
     @property
     def subtype(self):
         return self._message.get("subtype")
+
+    @property
+    def permalink(self):
+        permalink = f"https://{self.slack_name}.slack.com/archives/{self.channel_id}/p{self._message['ts'].replace('.','')}"
+        if "thread_ts" in self._message:
+            permalink += f"?thread_ts={self._message['thread_ts']}&cid={self.channel_id}"
+        return permalink
 
 
 class LinkAttachment():
