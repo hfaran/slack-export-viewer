@@ -170,11 +170,17 @@ class Reader(object):
         formatter = SlackFormatter(self.__USER_DATA, data)
 
         # Channel name to channel id mapping. Needed to create a messages
-        # permalink when using slackdump
-        channel_name_to_id = {c["name"]: c["id"] for c in data.values()}
+        # permalink with at least slackdump exports
+        channel_name_to_id = {}
+        for c in data.values():
+            if "name" in c:
+                channel_name_to_id[c["name"]] = c["id"]
+            else:
+                # direct messages have no channel name and are also
+                # stored with the the id's folder.
+                channel_name_to_id[c["id"]] = c["id"]
 
         for name in names:
-
             # gets path to dm directory that holds the json archive
             dir_path = os.path.join(self._PATH, name)
             messages = []
