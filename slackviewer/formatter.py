@@ -73,6 +73,8 @@ class SlackFormatter(object):
         if process_markdown:
             # Handle bold (convert * * to ** **)
             message = re.sub(r'\*', "**", message)
+            # Make sure --- won't wrap the previous line with <h2>
+            message = re.sub(r'---', "\\-\\-\\-", message)
 
             message = markdown2.markdown(
                 message,
