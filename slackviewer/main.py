@@ -40,8 +40,8 @@ def configure_app(app, archive, channels, no_sidebar, no_external_references, de
 @click.command()
 @click.option('-p', '--port', default=envvar('SEV_PORT', '5000'),
               type=click.INT, help="Host port to serve your content on")
-@click.option("-z", "--archive", type=click.Path(), required=True,
-              default=envvar('SEV_ARCHIVE', ''),
+@click.option("-z", "--archive", type=click.Path(exists=True), required=True,
+              envvar='SEV_ARCHIVE',
               help="Path to your Slack export archive (.zip file or directory)")
 @click.option('-I', '--ip', default=envvar('SEV_IP', 'localhost'),
               type=click.STRING, help="Host IP to serve your content on")
@@ -68,7 +68,6 @@ def configure_app(app, archive, channels, no_sidebar, no_external_references, de
               help="If you want static HTML only, set this.")
 @click.option("--since", default=None, type=click.DateTime(formats=["%Y-%m-%d"]),
               help="Only show messages since this date.")
-
 def main(
     port,
     archive,
@@ -83,9 +82,6 @@ def main(
     html_only,
     since,
 ):
-    if not archive:
-        raise ValueError("Empty path provided for archive")
-
     configure_app(app, archive, channels, no_sidebar, no_external_references, debug, since)
 
     if html_only:
