@@ -10,6 +10,7 @@ import pathlib
 from slackviewer.formatter import SlackFormatter
 from slackviewer.message import Message
 from slackviewer.user import User, deleted_user
+from slackviewer.archive import extract_archive
 
 
 class Reader(object):
@@ -17,10 +18,10 @@ class Reader(object):
     Reader object will read all of the archives' data from the json files
     """
 
-    def __init__(self, PATH, config):
-        self._PATH = PATH
-        self._debug = config.get("debug", False)
-        self._since = config.get("since", None)
+    def __init__(self, config):
+        self._config = config
+        self._PATH = extract_archive(config["archive"])
+        self._since = config["since"]
         # slack name that is in the url https://<slackname>.slack.com
         self._slack_name = self._get_slack_name()
         # TODO: Make sure this works
@@ -144,6 +145,14 @@ class Reader(object):
         except KeyError:
             return 0
 
+    def slack_name(self):
+        """Returns the (guessed) slack name"""
+        return self._slack_name
+
+    def archive_path(self):
+        """Returns the archive path"""
+        return self._PATH
+
     ###################
     # Private Methods #
     ###################
@@ -238,6 +247,11 @@ class Reader(object):
                 user_ts_lookup[k].append((i, m))
 
             for location, message in enumerate(channel_data[channel_name]):
+                # remove "<user> joined/left <channel>" message
+                if self._config['skip_channel_member_change'] and message._message.get('subtype') in ['channel_join', 'channel_leave']:
+                    items_to_remove.append(location)
+                    continue
+
                 #   If there's a "reply_count" key, generate a list of user and timestamp dictionaries
                 if 'reply_count' in message._message or 'replies' in message._message:
                     #   Identify and save where we are
@@ -258,6 +272,7 @@ class Reader(object):
                     for reply_obj_tuple in sorted_reply_objects:
                         items_to_remove.append(reply_obj_tuple[0])
                     replies[location] = [tup[1] for tup in sorted_reply_objects]
+
             # Create an OrderedDict of thread locations and replies in reverse numerical order
             sorted_threads = OrderedDict(sorted(replies.items(), reverse=True))
 

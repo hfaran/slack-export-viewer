@@ -5,37 +5,34 @@ import click
 import flask
 
 from slackviewer.app import app
-from slackviewer.archive import extract_archive
 from slackviewer.reader import Reader
 from slackviewer.freezer import CustomFreezer
 from slackviewer.utils.click import envvar, flag_ennvar
 
 
-def configure_app(app, archive, channels, config):
-    app.debug = config.get("debug", False)
-    app.no_sidebar = config.get("no_sidebar", False)
-    app.no_external_references = config.get("no_external_references", False)
+def configure_app(app, config):
+    app.debug = config["debug"]
+    app.no_sidebar = config["no_sidebar"]
+    app.no_external_references = config["no_external_references"]
     if app.debug:
         print("WARNING: DEBUG MODE IS ENABLED!")
     app.config["PROPAGATE_EXCEPTIONS"] = True
 
-    path = extract_archive(archive)
-    reader = Reader(path, config)
+    reader = Reader(config)
 
     top = flask._app_ctx_stack
-    top.path = path
-    top.channels = reader.compile_channels(channels)
+    top.path = reader.archive_path()
+    top.channels = reader.compile_channels(config["channels"])
     top.groups = reader.compile_groups()
     top.dms = {}
     top.dm_users = []
     top.mpims = {}
     top.mpim_users = []
-    if not config.get("skip_dms", False):
+    if not config["skip_dms"]:
         top.dms = reader.compile_dm_messages()
         top.dm_users = reader.compile_dm_users()
         top.mpims = reader.compile_mpim_messages()
         top.mpim_users = reader.compile_mpim_users()
-
 
     # remove any empty channels & groups. DM's are needed for now
     # since the application loads the first
@@ -75,41 +72,21 @@ def configure_app(app, archive, channels, config):
 @click.option("--since", default=None, type=click.DateTime(formats=["%Y-%m-%d"]),
               help="Only show messages since this date.")
 @click.option('--skip-dms', is_flag=True, default=False, help="Hide direct messages")
-
-def main(
-    port,
-    archive,
-    ip,
-    no_browser,
-    channels,
-    no_sidebar,
-    no_external_references,
-    test,
-    debug,
-    output_dir,
-    html_only,
-    since,
-    skip_dms,
-):
-    if not archive:
+@click.option('--skip-channel-member-change', is_flag=True, default=False, envvar='SKIP_CHANNEL_MEMBER_CHANGE', help="Hide channel join/leave messages")
+def main(**kwargs):
+    config = kwargs
+    if not config["archive"]:
         raise ValueError("Empty path provided for archive")
 
-    config = {
-        "debug": debug,
-        "since": since,
-        "skip_dms": skip_dms,
-        "no_sidebar": no_sidebar,
-        "no_external_references": no_external_references,
-    }
-    configure_app(app, archive, channels, config)
+    configure_app(app, config)
 
-    if html_only:
+    if config["html_only"]:
         # We need relative URLs, otherwise channel refs do not work
         app.config["FREEZER_RELATIVE_URLS"] = True
 
         # Custom subclass of Freezer allows overwriting the output directory
         freezer = CustomFreezer(app)
-        freezer.cf_output_dir = output_dir
+        freezer.cf_output_dir = config["output_dir"]
 
         # This tells freezer about the channel URLs
         @freezer.register_generator
@@ -119,14 +96,14 @@ def main(
 
         freezer.freeze()
 
-        if not no_browser:
+        if not config["no_browser"]:
             webbrowser.open("file:///{}/index.html"
-                            .format(os.path.abspath(output_dir)))
+                            .format(os.path.abspath(config["output_dir"])))
 
-    elif not test:
-        if not no_browser:
-            webbrowser.open("http://{}:{}".format(ip, port))
+    elif not config["test"]:
+        if not config["no_browser"]:
+            webbrowser.open("http://{}:{}".format(config["ip"], config["port"]))
         app.run(
-            host=ip,
-            port=port
+            host=config["ip"],
+            port=config["port"]
         )
