@@ -22,14 +22,13 @@ def configure_app(app, archive, channels, no_sidebar, no_external_references, de
     path = extract_archive(archive)
     reader = Reader(path, debug, since)
 
-    top = flask._app_ctx_stack
-    top.path = path
-    top.channels = reader.compile_channels(channels)
-    top.groups = reader.compile_groups()
-    top.dms = reader.compile_dm_messages()
-    top.dm_users = reader.compile_dm_users()
-    top.mpims = reader.compile_mpim_messages()
-    top.mpim_users = reader.compile_mpim_users()
+    app.data.path = path
+    app.data.channels = reader.compile_channels(channels)
+    app.data.groups = reader.compile_groups()
+    app.data.dms = reader.compile_dm_messages()
+    app.data.dm_users = reader.compile_dm_users()
+    app.data.mpims = reader.compile_mpim_messages()
+    app.data.mpim_users = reader.compile_mpim_users()
 
     # remove any empty channels & groups. DM's are needed for now
     # since the application loads the first
@@ -99,7 +98,7 @@ def main(
         # This tells freezer about the channel URLs
         @freezer.register_generator
         def channel_name():
-            for channel in flask._app_ctx_stack.channels:
+            for channel in app.data.channels:
                 yield {"name": channel}
 
         freezer.freeze()
