@@ -123,8 +123,9 @@ def main(
             webbrowser.open("file:///{}/index.html"
                             .format(os.path.abspath(output_dir)))
 
-    elif not no_browser and not test:
-        webbrowser.open("http://{}:{}".format(ip, port))
+    elif not test:
+        if not no_browser:
+            webbrowser.open("http://{}:{}".format(ip, port))
         app.run(
             host=ip,
             port=port
