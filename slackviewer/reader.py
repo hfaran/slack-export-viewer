@@ -17,10 +17,10 @@ class Reader(object):
     Reader object will read all of the archives' data from the json files
     """
 
-    def __init__(self, PATH, debug, since):
+    def __init__(self, PATH, config):
         self._PATH = PATH
-        self._debug = debug
-        self._since = since
+        self._debug = config.get("debug", False)
+        self._since = config.get("since", None)
         # slack name that is in the url https://<slackname>.slack.com
         self._slack_name = self._get_slack_name()
         # TODO: Make sure this works
@@ -54,6 +54,7 @@ class Reader(object):
         return self._create_messages(channel_names, channel_data)
 
     def compile_groups(self):
+        """Get private channels"""
 
         group_data = self._read_from_json("groups.json")
         group_names = [c["name"] for c in group_data.values()]
@@ -104,6 +105,7 @@ class Reader(object):
         return all_dms_users
 
     def compile_mpim_messages(self):
+        """Return multiple person DM groups"""
 
         mpim_data = self._read_from_json("mpims.json")
         mpim_names = [c["name"] for c in mpim_data.values()]
@@ -168,11 +170,17 @@ class Reader(object):
         formatter = SlackFormatter(self.__USER_DATA, data)
 
         # Channel name to channel id mapping. Needed to create a messages
-        # permalink when using slackdump
-        channel_name_to_id = {c["name"]: c["id"] for c in data.values()}
+        # permalink with at least slackdump exports
+        channel_name_to_id = {}
+        for c in data.values():
+            if "name" in c:
+                channel_name_to_id[c["name"]] = c["id"]
+            else:
+                # direct messages have no channel name and are also
+                # stored with the the id's folder.
+                channel_name_to_id[c["id"]] = c["id"]
 
         for name in names:
-
             # gets path to dm directory that holds the json archive
             dir_path = os.path.join(self._PATH, name)
             messages = []

@@ -11,25 +11,31 @@ from slackviewer.freezer import CustomFreezer
 from slackviewer.utils.click import envvar, flag_ennvar
 
 
-def configure_app(app, archive, channels, no_sidebar, no_external_references, debug, since):
-    app.debug = debug
-    app.no_sidebar = no_sidebar
-    app.no_external_references = no_external_references
+def configure_app(app, archive, channels, config):
+    app.debug = config.get("debug", False)
+    app.no_sidebar = config.get("no_sidebar", False)
+    app.no_external_references = config.get("no_external_references", False)
     if app.debug:
         print("WARNING: DEBUG MODE IS ENABLED!")
     app.config["PROPAGATE_EXCEPTIONS"] = True
 
     path = extract_archive(archive)
-    reader = Reader(path, debug, since)
+    reader = Reader(path, config)
 
     top = flask._app_ctx_stack
     top.path = path
     top.channels = reader.compile_channels(channels)
     top.groups = reader.compile_groups()
-    top.dms = reader.compile_dm_messages()
-    top.dm_users = reader.compile_dm_users()
-    top.mpims = reader.compile_mpim_messages()
-    top.mpim_users = reader.compile_mpim_users()
+    top.dms = {}
+    top.dm_users = []
+    top.mpims = {}
+    top.mpim_users = []
+    if not config.get("skip_dms", False):
+        top.dms = reader.compile_dm_messages()
+        top.dm_users = reader.compile_dm_users()
+        top.mpims = reader.compile_mpim_messages()
+        top.mpim_users = reader.compile_mpim_users()
+
 
     # remove any empty channels & groups. DM's are needed for now
     # since the application loads the first
@@ -68,6 +74,7 @@ def configure_app(app, archive, channels, no_sidebar, no_external_references, de
               help="If you want static HTML only, set this.")
 @click.option("--since", default=None, type=click.DateTime(formats=["%Y-%m-%d"]),
               help="Only show messages since this date.")
+@click.option('--skip-dms', is_flag=True, default=False, help="Hide direct messages")
 
 def main(
     port,
@@ -82,11 +89,19 @@ def main(
     output_dir,
     html_only,
     since,
+    skip_dms,
 ):
     if not archive:
         raise ValueError("Empty path provided for archive")
 
-    configure_app(app, archive, channels, no_sidebar, no_external_references, debug, since)
+    config = {
+        "debug": debug,
+        "since": since,
+        "skip_dms": skip_dms,
+        "no_sidebar": no_sidebar,
+        "no_external_references": no_external_references,
+    }
+    configure_app(app, archive, channels, config)
 
     if html_only:
         # We need relative URLs, otherwise channel refs do not work

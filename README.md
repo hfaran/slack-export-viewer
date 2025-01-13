@@ -118,6 +118,7 @@ Usage: cli.py export [OPTIONS] ARCHIVE_DIR
 
 Options:
   --debug
+  --show-dms           Show direct messages
   --since [%Y-%m-%d]   Only show messages since this date.
   --template FILENAME  Custom single file export template
   --help               Show this message and exit.
@@ -153,6 +154,7 @@ Export:
 $ slack-export-viewer-cli export \
     --since $(date -d "2 days ago" '+%Y-%m-%d') \
     --template /tmp/example_template_single_export.html \
+    --show-dms \
     /tmp/slack-export
 Archive already extracted. Viewing from /tmp/slack-export...
 Exported to slack-export.html
