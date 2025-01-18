@@ -5,15 +5,16 @@ import click
 import flask
 
 from slackviewer.app import app
-from slackviewer.reader import Reader
+from slackviewer.config import Config
 from slackviewer.freezer import CustomFreezer
+from slackviewer.reader import Reader
 from slackviewer.utils.click import envvar, flag_ennvar
 
 
 def configure_app(app, config):
-    app.debug = config["debug"]
-    app.no_sidebar = config["no_sidebar"]
-    app.no_external_references = config["no_external_references"]
+    app.debug = config.debug
+    app.no_sidebar = config.no_sidebar
+    app.no_external_references = config.no_external_references
     if app.debug:
         print("WARNING: DEBUG MODE IS ENABLED!")
     app.config["PROPAGATE_EXCEPTIONS"] = True
@@ -22,13 +23,13 @@ def configure_app(app, config):
 
     top = flask._app_ctx_stack
     top.path = reader.archive_path()
-    top.channels = reader.compile_channels(config["channels"])
+    top.channels = reader.compile_channels(config.channels)
     top.groups = reader.compile_groups()
     top.dms = {}
     top.dm_users = []
     top.mpims = {}
     top.mpim_users = []
-    if not config["skip_dms"]:
+    if not config.skip_dms:
         top.dms = reader.compile_dm_messages()
         top.dm_users = reader.compile_dm_users()
         top.mpims = reader.compile_mpim_messages()
@@ -74,20 +75,19 @@ def configure_app(app, config):
 @click.option('--skip-dms', is_flag=True, default=False, help="Hide direct messages")
 @click.option('--skip-channel-member-change', is_flag=True, default=False, envvar='SKIP_CHANNEL_MEMBER_CHANGE', help="Hide channel join/leave messages")
 def main(**kwargs):
-    config = kwargs
-    if not config["archive"]:
-
+    config = Config(kwargs)
+    if not config.archive:
         raise ValueError("Empty path provided for archive")
 
     configure_app(app, config)
 
-    if config["html_only"]:
+    if config.html_only:
         # We need relative URLs, otherwise channel refs do not work
         app.config["FREEZER_RELATIVE_URLS"] = True
 
         # Custom subclass of Freezer allows overwriting the output directory
         freezer = CustomFreezer(app)
-        freezer.cf_output_dir = config["output_dir"]
+        freezer.cf_output_dir = config.output_dir
 
         # This tells freezer about the channel URLs
         @freezer.register_generator
@@ -97,14 +97,14 @@ def main(**kwargs):
 
         freezer.freeze()
 
-        if not config["no_browser"]:
+        if not config.no_browser:
             webbrowser.open("file:///{}/index.html"
-                            .format(os.path.abspath(config["output_dir"])))
+                            .format(os.path.abspath(config.output_dir)))
 
-    elif not config["test"]:
-        if not config["no_browser"]:
-            webbrowser.open("http://{}:{}".format(config["ip"], config["port"]))
+    elif not config.test:
+        if not config.no_browser:
+            webbrowser.open("http://{}:{}".format(config.ip, config.port))
         app.run(
-            host=config["ip"],
-            port=config["port"]
+            host=config.ip,
+            port=config.port
         )

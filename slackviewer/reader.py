@@ -20,8 +20,8 @@ class Reader(object):
 
     def __init__(self, config):
         self._config = config
-        self._PATH = extract_archive(config["archive"])
-        self._since = config["since"]
+        self._PATH = extract_archive(config.archive)
+        self._since = config.since
         # slack name that is in the url https://<slackname>.slack.com
         self._slack_name = self._get_slack_name()
         # TODO: Make sure this works
@@ -248,7 +248,7 @@ class Reader(object):
 
             for location, message in enumerate(channel_data[channel_name]):
                 # remove "<user> joined/left <channel>" message
-                if self._config['skip_channel_member_change'] and message._message.get('subtype') in ['channel_join', 'channel_leave']:
+                if self._config.skip_channel_member_change and message._message.get('subtype') in ['channel_join', 'channel_leave']:
                     items_to_remove.append(location)
                     continue
 

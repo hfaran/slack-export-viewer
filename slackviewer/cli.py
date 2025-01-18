@@ -5,10 +5,11 @@ import os.path
 
 from datetime import datetime
 
-from slackviewer.constants import SLACKVIEWER_TEMP_PATH
-from slackviewer.utils.click import envvar, flag_ennvar
-from slackviewer.reader import Reader
 from jinja2 import Environment, PackageLoader
+from slackviewer.config import Config
+from slackviewer.constants import SLACKVIEWER_TEMP_PATH
+from slackviewer.reader import Reader
+from slackviewer.utils.click import envvar, flag_ennvar
 
 
 @click.group()
@@ -40,13 +41,13 @@ def clean(wet):
 @click.option("--template", default=None, type=click.File('r'), help="Custom single file export template")
 @click.argument('archive')
 def export(**kwargs):
-    config = kwargs
+    config = Config(kwargs)
 
     css = pkgutil.get_data('slackviewer', 'static/viewer.css').decode('utf-8')
 
     tmpl = Environment(loader=PackageLoader('slackviewer')).get_template("export_single.html")
-    if config["template"]:
-        tmpl = Environment(loader=PackageLoader('slackviewer')).from_string(config["template"].read())
+    if config.template:
+        tmpl = Environment(loader=PackageLoader('slackviewer')).from_string(config.template.read())
     r = Reader(config)
     channel_list = sorted(
         [{"channel_name": k, "messages": v} for (k, v) in r.compile_channels().items()],
@@ -55,7 +56,7 @@ def export(**kwargs):
 
     dm_list = []
     mpims = []
-    if config["show_dms"]:
+    if config.show_dms:
         #
         # Direct DMs
         dm_list = r.compile_dm_messages()
@@ -86,7 +87,7 @@ def export(**kwargs):
         css=css,
         generated_on=datetime.now(),
         workspace_name=r.slack_name(),
-        source_file=os.path.basename(config["archive"]),
+        source_file=os.path.basename(config.archive),
         channels=channel_list,
         dms=dm_list,
         mpims=mpims,
