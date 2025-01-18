@@ -5,6 +5,7 @@ import io
 import json
 import os
 import datetime
+import logging
 import pathlib
 
 from slackviewer.formatter import SlackFormatter
@@ -22,6 +23,10 @@ class Reader(object):
         self._config = config
         self._PATH = extract_archive(config.archive)
         self._since = config.since
+
+        # keep list of all channels to hide to flag not found ones
+        self._remaining_unhidden_channels = config.hide_channels.copy()
+
         # slack name that is in the url https://<slackname>.slack.com
         self._slack_name = self._get_slack_name()
         # TODO: Make sure this works
@@ -52,6 +57,8 @@ class Reader(object):
         channel_data = self._read_from_json("channels.json")
         channel_names = [c["name"] for c in channel_data.values() if not channels or c["name"] in channels]
 
+        channel_names = self._remove_hidden_channels(channel_names)
+
         return self._create_messages(channel_names, channel_data)
 
     def compile_groups(self):
@@ -59,6 +66,8 @@ class Reader(object):
 
         group_data = self._read_from_json("groups.json")
         group_names = [c["name"] for c in group_data.values()]
+
+        group_names = self._remove_hidden_channels(group_names)
 
         return self._create_messages(group_names, group_data)
 
@@ -152,6 +161,11 @@ class Reader(object):
     def archive_path(self):
         """Returns the archive path"""
         return self._PATH
+
+    def warn_not_found_to_hide_channels(self):
+        """Print error if not all channels to hide have been found"""
+        if self._remaining_unhidden_channels:
+            logging.warning(f"Error: Could not find all channels to hide: {self._remaining_unhidden_channels}")
 
     ###################
     # Private Methods #
@@ -390,3 +404,17 @@ class Reader(object):
         It's name ise used for the permalink generation.
         """
         return pathlib.Path(self._PATH).stem
+
+    def _remove_hidden_channels(self, channel_names):
+        """Remove hidden channels from the list of channel names"""
+        if self._remaining_unhidden_channels:
+            # copy to make code shorter
+            unhidden = self._remaining_unhidden_channels
+
+            to_remove = set(unhidden).intersection(channel_names)
+            unhidden = [c for c in unhidden if c not in to_remove]
+            channel_names = [c for c in channel_names if c not in to_remove]
+
+            self._remaining_unhidden_channels = unhidden
+
+        return channel_names
