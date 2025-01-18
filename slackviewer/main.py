@@ -8,7 +8,6 @@ from slackviewer.app import app
 from slackviewer.config import Config
 from slackviewer.freezer import CustomFreezer
 from slackviewer.reader import Reader
-from slackviewer.utils.click import envvar, flag_ennvar
 
 
 def configure_app(app, config):
@@ -29,7 +28,7 @@ def configure_app(app, config):
     top.dm_users = []
     top.mpims = {}
     top.mpim_users = []
-    if not config.skip_dms:
+    if config.show_dms:
         top.dms = reader.compile_dm_messages()
         top.dm_users = reader.compile_dm_users()
         top.mpims = reader.compile_mpim_messages()
@@ -44,39 +43,71 @@ def configure_app(app, config):
 
 
 @click.command()
-@click.option('-p', '--port', default=envvar('SEV_PORT', '5000'),
-              type=click.INT, help="Host port to serve your content on")
-@click.option("-z", "--archive", type=click.Path(exists=True), required=True,
-              envvar='SEV_ARCHIVE',
-              help="Path to your Slack export archive (.zip file or directory)")
-@click.option('-I', '--ip', default=envvar('SEV_IP', 'localhost'),
-              type=click.STRING, help="Host IP to serve your content on")
-@click.option('--no-browser', is_flag=True,
-              default=flag_ennvar("SEV_NO_BROWSER"),
-              help="If you do not want a browser to open "
-                   "automatically, set this.")
-@click.option('--channels', type=click.STRING,
-              default=envvar("SEV_CHANNELS", None),
-              help="A comma separated list of channels to parse.")
-@click.option('--no-sidebar', is_flag=True,
-              default=flag_ennvar("SEV_NO_SIDEBAR"),
-              help="Removes the sidebar.")
-@click.option('--no-external-references', is_flag=True,
-              default=flag_ennvar("SEV_NO_EXTERNAL_REFERENCES"),
-              help="Removes all references to external css/js/images.")
-@click.option('--test', is_flag=True, default=flag_ennvar("SEV_TEST"),
-              help="Runs in 'test' mode, i.e., this will do an archive extract, "
-              "but will not start the server, and immediately quit.")
-@click.option('--debug', is_flag=True, default=flag_ennvar("FLASK_DEBUG"))
+@click.option('-p', '--port', default=5000, envvar='SEV_PORT', type=click.INT, help="""\b
+    Host port to serve your content on
+    Environment var: SEV_PORT (default: 5000)
+    """)
+@click.option("-z", "--archive", type=click.Path(exists=True), required=True, envvar='SEV_ARCHIVE', help="""\b
+    Path to your Slack export archive (.zip file or directory)
+    Environment var: SEV_ARCHIVE
+    """)
+@click.option('-I', '--ip', default='localhost', envvar='SEV_IP', type=click.STRING, help="""\b
+    Host IP to serve your content on
+    Environment var: SEV_IP (default: localhost)
+    """)
+@click.option('--no-browser', is_flag=True, default=False, envvar='SEV_NO_BROWSER', help="""\b
+    If you do not want a browser to open automatically, set this.
+    Environment var: SEV_NO_BROWSER (default: false)
+    """)
+@click.option('--channels', type=click.STRING, default=None, envvar='SEV_CHANNELS', help="""\b
+    A comma separated list of channels to parse.
+    Environment var: SEV_CHANNELS (default: None)
+    """)
+@click.option('--no-sidebar', is_flag=True, default=False, envvar='SEV_NO_SIDEBAR', help="""\b
+    Removes the sidebar.
+    Environment var: SEV_NO_SIDEBAR (default: false)
+    """)
+@click.option('--no-external-references', is_flag=True, default=False, envvar='SEV_NO_EXTERNAL_REFERENCES', help="""
+    Removes all references to external css/js/images.
+    Environment var: SEV_NO_EXTERNAL_REFERENCES (default: false)
+    """)
+@click.option('--test', is_flag=True, default=False, envvar='SEV_TEST', help="""\b
+    Runs in 'test' mode, i.e., this will do an archive extract, but will not start the server, and immediately quit.
+              Environment var: SEV_TEST (default: false
+    """)
+@click.option('--debug', is_flag=True, default=False, envvar='FLASK_DEBUG', help="""\b
+    Enable debug mode
+    Environment var: FLASK_DEBUG (default: false)
+    """)
 @click.option("-o", "--output-dir", default="html_output", type=click.Path(),
-              help="Output directory for static HTML files.")
-@click.option("--html-only", is_flag=True, default=False,
-              help="If you want static HTML only, set this.")
-@click.option("--since", default=None, type=click.DateTime(formats=["%Y-%m-%d"]),
-              help="Only show messages since this date.")
-@click.option('--skip-dms', is_flag=True, default=False, help="Hide direct messages")
-@click.option('--skip-channel-member-change', is_flag=True, default=False, envvar='SKIP_CHANNEL_MEMBER_CHANGE', help="Hide channel join/leave messages")
-@click.option("--hide-channels", default=None, type=str, help="Comma separated list of channels to hide.", envvar="HIDE_CHANNELS")
+              envvar='SEV_OUTPUT_DIR', help="""\b
+    Output directory for static HTML files.
+    Environment var: SEV_OUTPUT_DIR (default: html_output)
+    """)
+@click.option("--html-only", is_flag=True, default=False, envvar='SEV_HTML_ONLY', help="""\b
+    If you want static HTML only, set this.
+    Environment var: SEV_HTML_ONLY (default: false)
+    """)
+@click.option("--since", default=None, type=click.DateTime(formats=["%Y-%m-%d"]), envvar='SEV_SINCE', help="""\b
+    Only show messages since this date.
+    Environment var: SEV_SINCE (default: None)
+    """)
+@click.option('--show-dms/--no-show-dms', default=False, envvar='SEV_SHOW_DMS', help="""\b
+    Show/Hide direct messages
+    Environment var: SEV_SHOW_DMS (default: false)
+    """)
+@click.option('--thread-note/--no-thread-note', default=True, envvar='SEV_THREAD_NOTE', help="""\b
+    Add/don't add 'Thread Reply' to thread messages.
+    Environment var: SEV_THREAD_NOTE (default: true)
+    """)
+@click.option('--skip-channel-member-change', is_flag=True, default=False, envvar='SEV_SKIP_CHANNEL_MEMBER_CHANGE', help="""\b
+    Hide channel join/leave messages
+    Environment var: SEV_SKIP_CHANNEL_MEMBER_CHANGE (default: false)
+    """)
+@click.option("--hide-channels", default=None, type=str, envvar="SEV_HIDE_CHANNELS", help="""\b
+    Comma separated list of channels to hide.
+    Environment var: SEV_HIDE_CHANNELS (default: None)
+    """)
 def main(**kwargs):
     config = Config(kwargs)
     if not config.archive:

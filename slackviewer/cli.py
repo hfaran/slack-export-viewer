@@ -9,7 +9,6 @@ from jinja2 import Environment, PackageLoader
 from slackviewer.config import Config
 from slackviewer.constants import SLACKVIEWER_TEMP_PATH
 from slackviewer.reader import Reader
-from slackviewer.utils.click import envvar, flag_ennvar
 
 
 @click.group()
@@ -18,9 +17,10 @@ def cli():
 
 
 @cli.command(help="Cleans up any temporary files (including cached output by slack-export-viewer)")
-@click.option("--wet", "-w", is_flag=True,
-              default=flag_ennvar("SEV_CLEAN_WET"),
-              help="Actually performs file deletion")
+@click.option("--wet", "-w", is_flag=True, default=False, envvar='SEV_CLEAN_WET', help="""\b
+    Actually performs file deletion
+    Environment var: SEV_CLEAN_WET (default: false)
+    """)
 def clean(wet):
     if wet:
         if os.path.exists(SLACKVIEWER_TEMP_PATH):
@@ -33,13 +33,34 @@ def clean(wet):
 
 
 @cli.command(help="Generates a single-file printable export for an archive file or directory")
-@click.option('--debug', is_flag=True, default=flag_ennvar("FLASK_DEBUG"))
-@click.option('--show-dms', is_flag=True, default=False, help="Show direct messages")
-@click.option("--since", default=None, type=click.DateTime(formats=["%Y-%m-%d"]),
-              help="Only show messages since this date.")
-@click.option('--skip-channel-member-change', is_flag=True, default=False, envvar='SKIP_CHANNEL_MEMBER_CHANGE', help="Hide channel join/leave messages")
-@click.option("--template", default=None, type=click.File('r'), help="Custom single file export template")
-@click.option("--hide-channels", default=None, type=str, help="Comma separated list of channels to hide.", envvar="HIDE_CHANNELS")
+@click.option('--debug', is_flag=True, default=False, envvar='SEV_DEBUG', help="""\b
+    Enable debug mode
+    Environment var: SEV_DEBUG (default: false)
+    """)
+@click.option('--show-dms/--no-show-dms', default=False, envvar='SEV_SHOW_DMS', help="""\b
+    Show/Hide direct messages"
+    Environment var: SEV_SHOW_DMS (default: false)
+    """)
+@click.option('--thread-note/--no-thread-note', default=True, envvar='SEV_THREAD_NOTE', help="""\b
+    Add/don't add 'Thread Reply' to thread messages.
+    Environment var: SEV_THREAD_NOTE (default: true)
+    """)
+@click.option("--since", default=None, type=click.DateTime(formats=["%Y-%m-%d"]), envvar='SEV_SINCE', help="""\b
+    Only show messages since the given date
+    Environment var: SEV_SINCE (default: None)
+    """)
+@click.option('--skip-channel-member-change', is_flag=True, default=False, envvar='SEV_SKIP_CHANNEL_MEMBER_CHANGE', help="""\b
+    Hide channel join/leave messages
+    Environment var: SEV_SKIP_CHANNEL_MEMBER_CHANGE (default: false)
+    """)
+@click.option("--template", default=None, type=click.File('r'), envvar='SEV_TEMPLATE', help="""\b
+    Custom single file export template
+    Environment var: SEV_TEMPLATE (default: "export_single.html")
+    """)
+@click.option("--hide-channels", default=None, type=str, envvar="SEV_HIDE_CHANNELS", help="""\b
+    Comma separated list of channels to hide.
+    Environment var: SEV_HIDE_CHANNELS (default: None)
+    """)
 @click.argument('archive')
 def export(**kwargs):
     config = Config(kwargs)
