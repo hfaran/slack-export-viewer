@@ -60,8 +60,11 @@ def extract_archive(filepath):
         #  if there are new features added
         extra=to_bytes(slackviewer.__version__)
     )
+    # use the zip file name as full path. This allows then slack name to be
+    # extracted from the path later in reader.py when creating direct slack URLs
+    slack_name = splitext(basename(filepath))[0]
 
-    extracted_path = os.path.join(SLACKVIEWER_TEMP_PATH, archive_sha)
+    extracted_path = os.path.join(SLACKVIEWER_TEMP_PATH, archive_sha, slack_name)
 
     if os.path.exists(extracted_path):
         print("{} already exists".format(extracted_path))
@@ -73,8 +76,7 @@ def extract_archive(filepath):
                 print(info.filename)
                 info.filename = info.filename.encode("cp437").decode("utf-8")
                 print(info.filename)
-                zip.extract(info,path=extracted_path)
-
+                zip.extract(info, path=extracted_path)
 
         print("{} extracted to {}".format(filepath, extracted_path))
 
@@ -112,27 +114,3 @@ def create_archive_info(filepath, extracted_path, archive_sha=None):
         s = json.dumps(archive_info, ensure_ascii=False)
         s = to_unicode(s)
         f.write(s)
-
-
-def get_export_info(archive_name):
-    """
-    Given a file or directory, extract it and return information that will be used in
-    an export printout: the basename of the file, the name stripped of its extension, and
-    our best guess (based on Slack's current naming convention) of the name of the
-    workspace that this is an export of.
-    """
-    extracted_path = extract_archive(archive_name)
-    base_filename = basename(archive_name)
-    (noext_filename, _) = splitext(base_filename)
-    workspace_name = base_filename
-    # In case the archive is a zip file
-    if not os.path.isdir(extracted_path):
-        # Typical extract name: "My Friends and Family Slack export Jul 21 2018 - Sep 06 2018"
-        # If that's not the format, we will just fall back to the extension-free filename.
-        (workspace_name, _) = noext_filename.split(" Slack export ", 1)
-    return {
-        "readable_path": extracted_path,
-        "basename": base_filename,
-        "stripped_name": noext_filename,
-        "workspace_name": workspace_name,
-    }

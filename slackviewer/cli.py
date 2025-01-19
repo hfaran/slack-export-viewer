@@ -5,11 +5,11 @@ import os.path
 
 from datetime import datetime
 
-from slackviewer.constants import SLACKVIEWER_TEMP_PATH
-from slackviewer.utils.click import envvar, flag_ennvar
-from slackviewer.reader import Reader
-from slackviewer.archive import get_export_info
 from jinja2 import Environment, PackageLoader
+from slackviewer.config import Config
+from slackviewer.constants import SLACKVIEWER_TEMP_PATH
+from slackviewer.reader import Reader
+from slackviewer.utils.click import envvar, flag_ennvar
 
 
 @click.group()
@@ -37,21 +37,18 @@ def clean(wet):
 @click.option('--show-dms', is_flag=True, default=False, help="Show direct messages")
 @click.option("--since", default=None, type=click.DateTime(formats=["%Y-%m-%d"]),
               help="Only show messages since this date.")
+@click.option('--skip-channel-member-change', is_flag=True, default=False, envvar='SKIP_CHANNEL_MEMBER_CHANGE', help="Hide channel join/leave messages")
 @click.option("--template", default=None, type=click.File('r'), help="Custom single file export template")
-@click.argument('archive_dir')
+@click.argument('archive')
+def export(**kwargs):
+    config = Config(kwargs)
 
-def export(archive_dir, debug, since, template, show_dms):
     css = pkgutil.get_data('slackviewer', 'static/viewer.css').decode('utf-8')
 
     tmpl = Environment(loader=PackageLoader('slackviewer')).get_template("export_single.html")
-    if template:
-        tmpl = Environment(loader=PackageLoader('slackviewer')).from_string(template.read())
-    export_file_info = get_export_info(archive_dir)
-    config = {
-        "debug": debug,
-        "since": since,
-    }
-    r = Reader(export_file_info["readable_path"], config)
+    if config.template:
+        tmpl = Environment(loader=PackageLoader('slackviewer')).from_string(config.template.read())
+    r = Reader(config)
     channel_list = sorted(
         [{"channel_name": k, "messages": v} for (k, v) in r.compile_channels().items()],
         key=lambda d: d["channel_name"]
@@ -59,10 +56,10 @@ def export(archive_dir, debug, since, template, show_dms):
 
     dm_list = []
     mpims = []
-    if show_dms:
+    if config.show_dms:
         #
         # Direct DMs
-        dm_list =  r.compile_dm_messages()
+        dm_list = r.compile_dm_messages()
         dm_users = r.compile_dm_users()
 
         # make list better lookupable. Also hide own user in 1:1 DMs
@@ -89,13 +86,14 @@ def export(archive_dir, debug, since, template, show_dms):
     html = tmpl.render(
         css=css,
         generated_on=datetime.now(),
-        workspace_name=export_file_info["workspace_name"],
-        source_file=export_file_info["basename"],
+        workspace_name=r.slack_name(),
+        source_file=os.path.basename(config.archive),
         channels=channel_list,
         dms=dm_list,
         mpims=mpims,
     )
-    with open(export_file_info['stripped_name'] + '.html', 'wb') as outfile:
+    filename = f"{r.slack_name()}.html"
+    with open(filename, 'wb') as outfile:
         outfile.write(html.encode('utf-8'))
 
-    print("Exported to {}.html".format(export_file_info['stripped_name']))
+    print(f"Exported to {filename}")
