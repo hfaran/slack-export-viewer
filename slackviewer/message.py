@@ -88,11 +88,76 @@ class Message(object):
     def msg(self):
         text = self._message.get("text")
         if text:
+            # There is a case where the message["text"] is much shorter as the
+            # actual message. It is unclear when or why.
+            #
+            # It might be around block['type'] == 'header', which is the trigger
+            # here. But it might also be applicable to other cases or depending
+            # on how an API call is done. All observed messages here have been
+            # done through the Slack API.
+            #
+            # Technically blocks are what Slack recommends to use, while the
+            # 'text' field is the fall back. 'text' field also seems to be used
+            # for notifications text
+            use_blocks = False
+            if "blocks" in self._message and self._message["blocks"]:
+                for block in self._message["blocks"]:
+                    if block["type"] == "header":
+                        use_blocks = True
+                        break
+            if use_blocks:
+                text = self._generate_blocks_text(self._message["blocks"])
+
             text = self._formatter.render_text(text)
         return text
 
+    def _generate_blocks_text(self, blocks):
+        """Build a message together from various message["blocks"]"""
+        text = ""
+        for block in blocks:
+            if "text" in block:
+                text += self._format_block_type(block['text'], block["type"])
+
+            elif "fields" in block:
+                for field in block["fields"]:
+                    text += self._format_block_type(field, block["type"])
+
+            elif "elements" in block:
+                for element in block["elements"]:
+                    text += self._format_block_type(element, block["type"])
+
+            elif "type" in block and block["type"] == "divider":
+                text += "---\n"
+
+            else:
+                logging.warning(f"Unknown block type: {block}")
+
+        return text
+
+    def _format_block_type(self, text_obj, b_type):
+        """Format the text based on the block type"""
+        if "text" not in text_obj:
+            logging.warning(f"Missing 'text' in {text_obj}")
+            return ""
+
+        text = text_obj["text"]
+
+        if "type" in text_obj and text_obj["type"] not in ["plain_text", "mrkdwn"]:
+            logging.warning(f"Unsupported text type {text_obj['text_type']} for {text_obj}")
+            return f"{text}\n\n"
+
+        if b_type == "header":
+            return f"*{text}*\n\n"
+        elif b_type == "section":
+            return f"{text}\n\n"
+        elif b_type == "context":
+            return f"<small>{text}</small>\n"
+        else:
+            logging.warning(f"Unsupported block type {b_type} for {text_obj}")
+            return f"{text}\n\n"
+
     def user_message(self, user_id):
-       return {"user": user_id}
+        return {"user": user_id}
 
     def usernames(self, reaction):
         return [
