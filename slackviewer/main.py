@@ -35,6 +35,8 @@ def configure_app(app, config):
         top.mpims = reader.compile_mpim_messages()
         top.mpim_users = reader.compile_mpim_users()
 
+    reader.warn_not_found_to_hide_channels()
+
     # remove any empty channels & groups. DM's are needed for now
     # since the application loads the first
     top.channels = {k: v for k, v in top.channels.items() if v}
@@ -74,6 +76,7 @@ def configure_app(app, config):
               help="Only show messages since this date.")
 @click.option('--skip-dms', is_flag=True, default=False, help="Hide direct messages")
 @click.option('--skip-channel-member-change', is_flag=True, default=False, envvar='SKIP_CHANNEL_MEMBER_CHANGE', help="Hide channel join/leave messages")
+@click.option("--hide-channels", default=None, type=str, help="Comma separated list of channels to hide.", envvar="HIDE_CHANNELS")
 def main(**kwargs):
     config = Config(kwargs)
     if not config.archive:

@@ -39,6 +39,7 @@ def clean(wet):
               help="Only show messages since this date.")
 @click.option('--skip-channel-member-change', is_flag=True, default=False, envvar='SKIP_CHANNEL_MEMBER_CHANGE', help="Hide channel join/leave messages")
 @click.option("--template", default=None, type=click.File('r'), help="Custom single file export template")
+@click.option("--hide-channels", default=None, type=str, help="Comma separated list of channels to hide.", envvar="HIDE_CHANNELS")
 @click.argument('archive')
 def export(**kwargs):
     config = Config(kwargs)
@@ -82,6 +83,8 @@ def export(**kwargs):
 
         # replace id with group member list
         mpims = [{'name': mpim_users[k], 'messages': v} for k, v in mpims.items()]
+
+    r.warn_not_found_to_hide_channels()
 
     html = tmpl.render(
         css=css,

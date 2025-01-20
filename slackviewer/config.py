@@ -1,10 +1,11 @@
 import logging
 import sys
 
+
 class Config(object):
     """
     Config object to to retreive all config input and make sure all expected
-    variables either or have a None value
+    variables exist
     """
     def __init__(self, config):
         self._config = config
@@ -12,10 +13,15 @@ class Config(object):
         # FYI: click verifies most types already as well as if files/dirs exist
 
         # Args used by both webserver and cli
+        self.archive = config.get("archive")
         self.debug = config.get("debug")
+
+        self.hide_channels = []
+        if 'hide_channels' in config and config.get("hide_channels"):
+            self.hide_channels = config['hide_channels'].split(',')
+
         self.since = config.get("since")
         self.skip_channel_member_change = config.get("skip_channel_member_change")
-        self.archive = config.get("archive")
 
         # CLI only
         self.template = config.get("template")

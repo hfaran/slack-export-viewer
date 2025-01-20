@@ -45,24 +45,27 @@ $ slack-export-viewer --help
 Usage: slack-export-viewer [OPTIONS]
 
 Options:
-  -p, --port INTEGER        Host port to serve your content on
-  -z, --archive PATH        Path to your Slack export archive (.zip file or
-                            directory)  [required]
-  -I, --ip TEXT             Host IP to serve your content on
-  --no-browser              If you do not want a browser to open
-                            automatically, set this.
-  --channels TEXT           A comma separated list of channels to parse.
-  --no-sidebar              Removes the sidebar.
-  --no-external-references  Removes all references to external css/js/images.
-  --test                    Runs in 'test' mode, i.e., this will do an archive
-                            extract, but will not start the server, and
-                            immediately quit.
+  -p, --port INTEGER            Host port to serve your content on
+  -z, --archive PATH            Path to your Slack export archive (.zip file
+                                or directory)  [required]
+  -I, --ip TEXT                 Host IP to serve your content on
+  --no-browser                  If you do not want a browser to open
+                                automatically, set this.
+  --channels TEXT               A comma separated list of channels to parse.
+  --no-sidebar                  Removes the sidebar.
+  --no-external-references      Removes all references to external
+                                css/js/images.
+  --test                        Runs in 'test' mode, i.e., this will do an
+                                archive extract, but will not start the
+                                server, and immediately quit.
   --debug
-  --html-only               If you want static HTML only.
-  -o, --output-dir PATH     Output directory for static HTML. [default: `html_output`]
-  --html-only               If you want static HTML only, set this.
-  --since [%Y-%m-%d]        Only show messages since this date.
-  --help                    Show this message and exit.
+  -o, --output-dir PATH         Output directory for static HTML files.
+  --html-only                   If you want static HTML only, set this.
+  --since [%Y-%m-%d]            Only show messages since this date.
+  --skip-dms                    Hide direct messages
+  --skip-channel-member-change  Hide channel join/leave messages
+  --hide-channels TEXT          Comma separated list of channels to hide.
+  --help                        Show this message and exit.
 ```
 
 
@@ -118,10 +121,13 @@ Usage: cli.py export [OPTIONS] ARCHIVE_DIR
 
 Options:
   --debug
-  --show-dms           Show direct messages
-  --since [%Y-%m-%d]   Only show messages since this date.
-  --template FILENAME  Custom single file export template
-  --help               Show this message and exit.
+  --show-dms                    Show direct messages
+  --since [%Y-%m-%d]            Only show messages since this date.
+  --skip-channel-member-change  Hide channel join/leave messages
+  --template FILENAME           Custom single file export template
+  --hide-channels TEXT          Comma separated list of channels to hide.
+  --help                        Show this message and exit.
+
 ```
 An example template can be found in the repositories [`slackviewer/templates/example_template_single_export.html`](https://github.com/hfaran/slack-export-viewer/tree/master/slackviewer/templates/example_template_single_export.html) file
 
