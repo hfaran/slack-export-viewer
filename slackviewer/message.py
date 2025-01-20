@@ -137,14 +137,18 @@ class Message(object):
     def _format_block_type(self, text_obj, b_type):
         """Format the text based on the block type"""
         if "text" not in text_obj:
-            logging.warning(f"Missing 'text' in {text_obj}")
-            return ""
+            logging.warning(f"Block Type {b_type}: Missing 'text' in {text_obj}")
+            return "unsupported_block({b_type}: {text_obj})\n\n"
 
         text = text_obj["text"]
 
-        if "type" in text_obj and text_obj["type"] not in ["plain_text", "mrkdwn"]:
-            logging.warning(f"Unsupported text type {text_obj['text_type']} for {text_obj}")
-            return f"{text}\n\n"
+        if "type" in text_obj and text_obj["type"] not in ["plain_text", "mrkdwn", "button"]:
+            logging.warning(f"Block Type {b_type}: Unsupported text type '{text_obj['type']}' for {text_obj}")
+            return f"unsupported_block({b_type}: {text})\n\n"
+
+        if "type" in text_obj and text_obj["type"] == "button":
+            if "text" in text_obj['text']:
+                text = f"Slack_Button({text['text']})"
 
         if b_type == "header":
             return f"*{text}*\n\n"
@@ -152,9 +156,11 @@ class Message(object):
             return f"{text}\n\n"
         elif b_type == "context":
             return f"<small>{text}</small>\n"
+        elif b_type == "actions":
+            return f"Slack_Action({text})\n"
         else:
-            logging.warning(f"Unsupported block type {b_type} for {text_obj}")
-            return f"{text}\n\n"
+            logging.warning(f"Unsupported block type '{b_type}' for {text_obj}")
+            return f"unsupported_block({b_type}: {text_obj}\n\n)"
 
     def user_message(self, user_id):
         return {"user": user_id}
