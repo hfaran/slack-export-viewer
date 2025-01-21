@@ -45,27 +45,41 @@ $ slack-export-viewer --help
 Usage: slack-export-viewer [OPTIONS]
 
 Options:
-  -p, --port INTEGER            Host port to serve your content on
-  -z, --archive PATH            Path to your Slack export archive (.zip file
-                                or directory)  [required]
-  -I, --ip TEXT                 Host IP to serve your content on
-  --no-browser                  If you do not want a browser to open
-                                automatically, set this.
-  --channels TEXT               A comma separated list of channels to parse.
-  --no-sidebar                  Removes the sidebar.
-  --no-external-references      Removes all references to external
-                                css/js/images.
-  --test                        Runs in 'test' mode, i.e., this will do an
-                                archive extract, but will not start the
-                                server, and immediately quit.
-  --debug
-  -o, --output-dir PATH         Output directory for static HTML files.
-  --html-only                   If you want static HTML only, set this.
-  --since [%Y-%m-%d]            Only show messages since this date.
-  --skip-dms                    Hide direct messages
-  --skip-channel-member-change  Hide channel join/leave messages
-  --hide-channels TEXT          Comma separated list of channels to hide.
-  --help                        Show this message and exit.
+  -p, --port INTEGER              Host port to serve your content on
+                                  Environment var: SEV_PORT (default: 5000)
+  -z, --archive PATH              Path to your Slack export archive (.zip file or directory)
+                                  Environment var: SEV_ARCHIVE  [required]
+  -I, --ip TEXT                   Host IP to serve your content on
+                                  Environment var: SEV_IP (default: localhost)
+  --no-browser                    If you do not want a browser to open automatically, set this.
+                                  Environment var: SEV_NO_BROWSER (default: false)
+  --channels TEXT                 A comma separated list of channels to parse.
+                                  Environment var: SEV_CHANNELS (default: None)
+  --no-sidebar                    Removes the sidebar.
+                                  Environment var: SEV_NO_SIDEBAR (default: false)
+  --no-external-references        Removes all references to external
+                                  css/js/images. Environment var:
+                                  SEV_NO_EXTERNAL_REFERENCES (default: false)
+  --test                          Runs in 'test' mode, i.e., this will do an archive extract, but will not start the server, and immediately quit.
+                                            Environment var: SEV_TEST (default: false
+  --debug                         Enable debug mode
+                                  Environment var: FLASK_DEBUG (default: false)
+  -o, --output-dir PATH           Output directory for static HTML files.
+                                  Environment var: SEV_OUTPUT_DIR (default: html_output)
+  --html-only                     If you want static HTML only, set this.
+                                  Environment var: SEV_HTML_ONLY (default: false)
+  --since [%Y-%m-%d]              Only show messages since this date.
+                                  Environment var: SEV_SINCE (default: None)
+  --show-dms / --no-show-dms      Show/Hide direct messages
+                                  Environment var: SEV_SHOW_DMS (default: false)
+  --thread-note / --no-thread-note
+                                  Add/don't add 'Thread Reply' to thread messages.
+                                  Environment var: SEV_THREAD_NOTE (default: true)
+  --skip-channel-member-change    Hide channel join/leave messages
+                                  Environment var: SEV_SKIP_CHANNEL_MEMBER_CHANGE (default: false)
+  --hide-channels TEXT            Comma separated list of channels to hide.
+                                  Environment var: SEV_HIDE_CHANNELS (default: None)
+  --help                          Show this message and exit.
 ```
 
 
@@ -120,15 +134,24 @@ Usage: cli.py export [OPTIONS] ARCHIVE_DIR
   Generates a single-file printable export for an archive file or directory
 
 Options:
-  --debug
-  --show-dms                    Show direct messages
-  --since [%Y-%m-%d]            Only show messages since this date.
-  --skip-channel-member-change  Hide channel join/leave messages
-  --template FILENAME           Custom single file export template
-  --hide-channels TEXT          Comma separated list of channels to hide.
-  --help                        Show this message and exit.
-
+  --debug                         Enable debug mode
+                                  Environment var: SEV_DEBUG (default: false)
+  --show-dms / --no-show-dms      Show/Hide direct messages"
+                                  Environment var: SEV_SHOW_DMS (default: false)
+  --thread-note / --no-thread-note
+                                  Add/don't add 'Thread Reply' to thread messages.
+                                  Environment var: SEV_THREAD_NOTE (default: true)
+  --since [%Y-%m-%d]              Only show messages since the given date
+                                  Environment var: SEV_SINCE (default: None)
+  --skip-channel-member-change    Hide channel join/leave messages
+                                  Environment var: SEV_SKIP_CHANNEL_MEMBER_CHANGE (default: false)
+  --template FILENAME             Custom single file export template
+                                  Environment var: SEV_TEMPLATE (default: "export_single.html")
+  --hide-channels TEXT            Comma separated list of channels to hide.
+                                  Environment var: SEV_HIDE_CHANNELS (default: None)
+  --help                          Show this message and exit.
 ```
+
 An example template can be found in the repositories [`slackviewer/templates/example_template_single_export.html`](https://github.com/hfaran/slack-export-viewer/tree/master/slackviewer/templates/example_template_single_export.html) file
 
 Clean
@@ -141,6 +164,7 @@ Usage: cli.py clean [OPTIONS]
 
 Options:
   -w, --wet  Actually performs file deletion
+             Environment var: SEV_CLEAN_WET (default: false)
   --help     Show this message and exit.
 ```
 
@@ -161,6 +185,9 @@ $ slack-export-viewer-cli export \
     --since $(date -d "2 days ago" '+%Y-%m-%d') \
     --template /tmp/example_template_single_export.html \
     --show-dms \
+    --skip-channel-member-change \
+    --no-thread-note \
+    --hide-channels "random,alerts" \
     /tmp/slack-export
 Archive already extracted. Viewing from /tmp/slack-export...
 Exported to slack-export.html
