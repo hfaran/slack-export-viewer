@@ -2,7 +2,7 @@
     {% set thumb = parent.thumbnail(thumbnail_size) %}
     {% if not no_external_references and thumb %}
         <a href="{{parent.link}}">
-            <img class="preview" src="{{thumb.src}}"
+            <img class="preview" src="{{thumb.src}}" loading="lazy"
                 {% if thumb.width %}width="{{thumb.width}}"{% endif %}
                 {% if thumb.height %} height="{{thumb.height}}"{% endif %} />
         </a>
@@ -23,9 +23,9 @@
                 <div class="reply">
             {% endif %}
             {% if not no_external_references and not message.is_thread_msg %}
-                {% if message.img %}<img src="{{ message.img }}" class="user_icon" />{%else%}<div class="user_icon"></div>{%endif%}
+                {% if message.img %}<img src="{{ message.img }}" class="user_icon" loading="lazy" />{%else%}<div class="user_icon"></div>{%endif%}
             {% elif not no_external_references and message.is_thread_msg %}
-                {% if message.img %}<img src="{{ message.img }}" class="user_icon_reply" />{%else%}<div class="user_icon_reply"></div>{%endif%}
+                {% if message.img %}<img src="{{ message.img }}" class="user_icon_reply" loading="lazy" />{%else%}<div class="user_icon_reply"></div>{%endif%}
             {% endif %}
                 <div class="username">{{ message.username }}
                     {%if message.user.email%} <span class="print-only user-email">({{message.user.email}})</span>{%endif%}
@@ -41,7 +41,7 @@
                             {%if attachment.author_name%}
                                 <div class="attachment-author">
                                     {% if not no_external_references %}
-                                        <img src="{{attachment.author_icon}}" class="icon">
+                                        <img src="{{attachment.author_icon}}" class="icon" loading="lazy" />
                                     {% endif %}
                                     {%if attachment.author_link%}<a href="{{attachment.author_link}}">{%endif%}
                                     {{attachment.author_name}}
@@ -66,7 +66,7 @@
                                 {% endif %}
                                 {%if attachment.footer%}
                                     <div class="attachment-footer">
-                                        <img src="{{attachment.footer_icon}}" class="icon" />
+                                        <img src="{{attachment.footer_icon}}" class="icon" loading="lazy" />
                                         {{attachment.footer}}
                                     </div>
                                 {%endif%}
