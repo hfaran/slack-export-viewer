@@ -92,7 +92,7 @@ def configure_app(app, config):
     Only show messages since this date.
     Environment var: SEV_SINCE (default: None)
     """)
-@click.option('--show-dms/--no-show-dms', default=False, envvar='SEV_SHOW_DMS', help="""\b
+@click.option('--show-dms/--no-show-dms', default=True, envvar='SEV_SHOW_DMS', help="""\b
     Show/Hide direct messages
     Environment var: SEV_SHOW_DMS (default: false)
     """)
