@@ -71,6 +71,7 @@ body {
     clear: left;
     min-height: 56px;
     margin-bottom: 4px;
+    max-width: 98%;
 }
 
 .message-container:first-child {
@@ -100,6 +101,7 @@ body {
     display: inline-block;
     vertical-align: top;
     margin-right: 0.65em;
+    margin-left: 0px;
     float: left;
 }
 
@@ -170,8 +172,8 @@ body {
 .message-container .message-attachment {
     padding-left: 20px;
     border-left: 12px gray solid;
-    margin-left: 60px;
-    margin-bottom: 6px;
+    margin-left: 18px;
+    margin-bottom: 20px;
     overflow-wrap: anywhere;
 }
 
@@ -188,22 +190,19 @@ body {
 }
 
 .message-reaction {
-    transform: scale(115%);
-    margin: 0 55px 20px;
-    transform-origin: left;
+  transform: scale(150%);
+  margin: 20px 20%;
 }
 
 blockquote {
-    padding-left: 20px;
-    border-left: 12px gray solid;
-    margin-left: 60px;
-    margin-top: 10px;
-    margin-bottom: 10px;
+  padding-left: 20px;
+  border-left: 12px gray solid;
+  margin-left: 60px;
 }
 
 ul, ol {
-    padding-left: 20px;
-    margin-left: 60px;
+  padding-left: 20px;
+  margin-left: 60px;
 }
 
 .channel_join .msg, .channel_topic .msg,
