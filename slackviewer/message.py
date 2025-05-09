@@ -158,7 +158,7 @@ class Message(object):
         elif element["type"] == "user":
             user = self._formatter.find_user(self.user_message(element['user_id']))
             if user:
-                return f"<b>{user.display_name}</b>"
+                return f"<b>@{user.display_name}</b>"
             else:
                 return f"<b>[ Unknown user {element['user_id']} ]</b>"
 
