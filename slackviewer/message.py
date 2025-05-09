@@ -86,37 +86,31 @@ class Message(object):
 
     @property
     def msg(self):
-        text = self._message.get("text")
-        if text:
-            # There is a case where the message["text"] is much shorter as the
-            # actual message. It is unclear when or why.
-            #
-            # It might be around block['type'] == 'header', which is the trigger
-            # here. But it might also be applicable to other cases or depending
-            # on how an API call is done. All observed messages here have been
-            # done through the Slack API.
-            #
-            # Technically blocks are what Slack recommends to use, while the
-            # 'text' field is the fall back. 'text' field also seems to be used
-            # for notifications text
-            use_blocks = False
-            if "blocks" in self._message and self._message["blocks"]:
-                for block in self._message["blocks"]:
-                    if block["type"] == "header":
-                        use_blocks = True
-                        break
-            if use_blocks:
-                text = self._generate_blocks_text(self._message["blocks"])
+        # Slack recommends to use blocks, while the
+        # 'text' field is the fall back. 'text' field also seems to be used
+        # for notifications text
+        #
+        # There is a case where the message["text"] is much shorter as the
+        # actual message. It is unclear when or why.
+        # All observed messages here have been
+        # done through the Slack API.
+        if "blocks" in self._message and self._message["blocks"]:
+            text = self._generate_blocks_text(self._message["blocks"])
+        else:
+            text = self._message.get("text", "")
+            if not text or text.strip() == "":
+                text = "[ MESSAGE TEXT EMPTY ]"
 
-            text = self._formatter.render_text(text)
-        return text
+        return self._formatter.render_text(text)
+
 
     def _generate_blocks_text(self, blocks):
         """Build a message together from various message["blocks"]"""
         text = ""
         for block in blocks:
-            if "text" in block:
-                text += self._format_block_type(block['text'], block["type"])
+            if block["type"] in ["rich_text", "rich_text_quote"]:
+                for element in block["elements"]:
+                    text += self._format_rich_text_element(element)
 
             elif "fields" in block:
                 for field in block["fields"]:
@@ -134,11 +128,112 @@ class Message(object):
 
         return text
 
+    def _format_rich_text_element(self, element):
+        """Format rich text elements based on their type and styles"""
+        if element["type"] == "rich_text_quote":
+            # Start the quote block
+            quote_text = "<blockquote>\n"
+            # Recursively format nested elements
+            quote_text += ''.join(self._format_rich_text_element(nested_element) for nested_element in element["elements"])
+            # Close the quote block
+            quote_text += "</blockquote>\n"
+            return quote_text
+
+        elif element["type"] == "rich_text_section":
+            # Recursively format nested elements
+            return ''.join(self._format_rich_text_element(nested_element) for nested_element in element["elements"])
+
+        elif element["type"] == "text":
+            text = element["text"]
+            if "style" in element:
+                if "bold" in element["style"] and element["style"]["bold"]:
+                    text = f"<b>{text}</b>"
+                if "italic" in element["style"] and element["style"]["italic"]:
+                    text = f"<i>{text}</i>"
+            return text
+
+        elif element["type"] == "link":
+            return f"<{element['url']}|{element.get('text', element['url'])}>"
+
+        elif element["type"] == "user":
+            user = self._formatter.find_user(self.user_message(element['user_id']))
+            if user:
+                return f"<b>{user.display_name}</b>"
+            else:
+                return f"<b>[ Unknown user {element['user_id']} ]</b>"
+
+        elif element["type"] == "rich_text_list":
+            list_text = ""
+            if element["style"] == "bullet":
+                list_text += "<ul>\n"
+                list_text += "\n".join(f"<li>{self._format_rich_text_element(nested_element)}</li>" for nested_element in element["elements"])
+                list_text += "</ul>\n"
+            elif element["style"] == "ordered":
+                list_text += "<ol>\n"
+                list_text += "\n".join(f"<li>{self._format_rich_text_element(nested_element)}</li>" for nested_element in element["elements"])
+                list_text += "</ol>\n"
+            else:
+                logging.warning(f"Unsupported rich text list style '{element['style']}' for {element}")
+            return list_text
+
+        elif element["type"] == "emoji":
+            if "unicode" in element:
+                return emoji.emojize(f":{element['name']}:", language='alias')
+            else:
+                return element["name"]
+
+        elif element["type"] == "rich_text_preformatted":
+            preformatted_text = ""
+            for nested_element in element["elements"]:
+                preformatted_text += self._format_rich_text_element(nested_element)
+            return f"<pre>{preformatted_text}</pre>"
+
+        elif element["type"] == "channel":
+            channel_id = element["channel_id"]
+            channel_name = self._formatter.find_channel(channel_id)
+            if channel_name:
+                return f"<a href='https://{self.slack_name}.slack.com/archives/{channel_id}'>{channel_name}</a>"
+            else:
+                return f"<a href='https://{self.slack_name}.slack.com/archives/{channel_id}'>[ Unknown channel {channel_id} ]</a>"
+
+        # Add more element types as needed
+        logging.warning(f"Unsupported rich text element type '{element['type']}' for {element}")
+        return ""
+
+
+
+
     def _format_block_type(self, text_obj, b_type):
         """Format the text based on the block type"""
+        if b_type == "image":
+            if "image_url" in text_obj:
+                image_url = text_obj["image_url"]
+                alt_text = text_obj.get("alt_text", "")
+                title = text_obj.get("title", {}).get("text", "")
+                return f"<img src='{image_url}' alt='{alt_text}' title='{title}'>\n"
+            else:
+                logging.warning(f"Block Type {b_type}: Missing 'image_url' in {text_obj}")
+                return f"unsupported_block({b_type}: {text_obj})\n\n"
+
+        if b_type == "context":
+            if "type" in text_obj and text_obj["type"] == "image":
+                if "image_url" in text_obj:
+                    image_url = text_obj["image_url"]
+                    alt_text = text_obj.get("alt_text", "")
+                    return f"<img src='{image_url}' alt='{alt_text}'>\n"
+                else:
+                    logging.warning(f"Block Type {b_type}: Missing 'image_url' in {text_obj}")
+                    return f"unsupported_block({b_type}: {text_obj})\n\n"
+            elif "text" in text_obj:
+                text = text_obj["text"]
+                return f"<small>{text}</small>\n"
+            else:
+                logging.warning(f"Block Type {b_type}: Missing 'text' in {text_obj}")
+                return f"unsupported_block({b_type}: {text_obj})\n\n"
+
         if "text" not in text_obj:
             logging.warning(f"Block Type {b_type}: Missing 'text' in {text_obj}")
-            return "unsupported_block({b_type}: {text_obj})\n\n"
+            return f"unsupported_block({b_type}: {text_obj})\n\n"
 
         text = text_obj["text"]
 
@@ -154,13 +249,36 @@ class Message(object):
             return f"*{text}*\n\n"
         elif b_type == "section":
             return f"{text}\n\n"
-        elif b_type == "context":
-            return f"<small>{text}</small>\n"
         elif b_type == "actions":
             return f"Slack_Action({text})\n"
         else:
             logging.warning(f"Unsupported block type '{b_type}' for {text_obj}")
             return f"unsupported_block({b_type}: {text_obj}\n\n)"
+
+
+
+    def _generate_blocks_text(self, blocks):
+        """Build a message together from various message["blocks"]"""
+        text = ""
+        for block in blocks:
+            if block["type"] == "image":
+                text += self._format_block_type(block, block["type"])
+            elif block["type"] in ["rich_text", "rich_text_quote"]:
+                for element in block["elements"]:
+                    text += self._format_rich_text_element(element)
+            elif "fields" in block:
+                for field in block["fields"]:
+                    text += self._format_block_type(field, block["type"])
+            elif "elements" in block:
+                for element in block["elements"]:
+                    text += self._format_block_type(element, block["type"])
+            elif "type" in block and block["type"] == "divider":
+                text += "---\n"
+            else:
+                logging.warning(f"Unknown block type: {block}")
+        return text
+
+
 
     def user_message(self, user_id):
         return {"user": user_id}
