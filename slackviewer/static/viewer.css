@@ -71,6 +71,7 @@ body {
 .message-container {
     clear: left;
     min-height: 56px;
+    max-width: 98%;
 }
 
 .message-container:first-child {
@@ -83,8 +84,8 @@ body {
 
 .message-container .user_icon {
     background-color: rgb(248, 244, 240);
-    width: 36px;
-    height: 36px;
+    width: 50px;
+    height: 50px;
     border-radius: 0.2em;
     display: inline-block;
     vertical-align: top;
@@ -94,13 +95,13 @@ body {
 
 .message-container .user_icon_reply {
     background-color: rgb(248, 244, 240);
-    width: 36px;
-    height: 36px;
+    width: 45px;
+    height: 45px;
     border-radius: 0.2em;
     display: inline-block;
     vertical-align: top;
     margin-right: 0.65em;
-    margin-left: 40px;
+    margin-left: 0px;
     float: left;
 }
 
@@ -161,8 +162,10 @@ body {
 }
 
 .message-container .message-attachment {
-    padding-left: 5px;
-    border-left: 2px gray solid;
+    padding-left: 20px;
+    border-left: 12px gray solid;
+    margin-left: 18px;
+    margin-bottom: 20px;
     overflow-wrap: anywhere;
 }
 
@@ -176,6 +179,22 @@ body {
 
 .message-container .old-message {
     color: #999999;
+}
+
+.message-reaction {
+  transform: scale(150%);
+  margin: 20px 20%;
+}
+
+blockquote {
+  padding-left: 20px;
+  border-left: 12px gray solid;
+  margin-left: 60px;
+}
+
+ul, ol {
+  padding-left: 20px;
+  margin-left: 60px;
 }
 
 .channel_join .msg, .channel_topic .msg,
@@ -240,6 +259,6 @@ a:hover {
 }
 
 img.preview {
-    max-width: 100%;
+    max-width: 50%;
     height: auto;
 }
