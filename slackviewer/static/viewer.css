@@ -128,24 +128,15 @@ body {
     vertical-align: top;
     line-height: 1;
     width: calc(100% - 3em);
-<<<<<<< HEAD
-    margin-bottom: 10px;
-=======
     margin-bottom: -10px;
->>>>>>> 068b6f0 (Alignment adjustments)
 }
 
 .message-container .reply {
     vertical-align: top;
     line-height: 1;
-<<<<<<< HEAD
-    width: calc(97% - 3em);
-    margin-left: 60px;
-    margin-bottom: 10px;
-=======
     width: calc(100% - 3em);
     margin-left: 60px;
->>>>>>> 068b6f0 (Alignment adjustments)
+    margin-bottom: 10px;
 }
 
 .message-container .msg p {
@@ -155,7 +146,12 @@ body {
     margin-bottom: 10px;
 =======
     margin-left: 56px;
+<<<<<<< HEAD
 >>>>>>> 068b6f0 (Alignment adjustments)
+=======
+    margin-top: 10px;
+    margin-bottom: 10px;
+>>>>>>> 3339c0b (Alignment adjustments)
 }
 
 .message-container .msg pre {
@@ -165,14 +161,12 @@ body {
 
 .message-container .message .msg {
     line-height: 1.5;
-    margin-top: -4px;
+    padding-top: 2px;
 }
 
 .message-container .reply .msg {
     line-height: 1.5;
     margin-top: -3px;
-    margin-left: 56px;
-    margin-top: -8px;
 }
 
 .message-container .message .msg a {
@@ -187,7 +181,7 @@ body {
     padding-left: 20px;
     border-left: 12px gray solid;
     margin-left: 60px;
-    margin-bottom: 20px;
+    margin-bottom: 6px;
     overflow-wrap: anywhere;
 }
 
@@ -204,20 +198,22 @@ body {
 }
 
 .message-reaction {
-transform: scale(115%);
-margin: 0 55px 20px;
-transform-origin: left;
+    transform: scale(115%);
+    margin: 0 55px 20px;
+    transform-origin: left;
 }
 
 blockquote {
-  padding-left: 20px;
-  border-left: 12px gray solid;
-  margin-left: 60px;
+    padding-left: 20px;
+    border-left: 12px gray solid;
+    margin-left: 60px;
+    margin-top: 10px;
+    margin-bottom: 10px;
 }
 
 ul, ol {
-  padding-left: 20px;
-  margin-left: 60px;
+    padding-left: 20px;
+    margin-left: 60px;
 }
 
 .channel_join .msg, .channel_topic .msg,
