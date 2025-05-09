@@ -72,6 +72,7 @@ body {
     min-height: 56px;
     margin-bottom: 4px;
     max-width: 98%;
+    margin-bottom: 4px;
 }
 
 .message-container:first-child {
@@ -127,21 +128,34 @@ body {
     vertical-align: top;
     line-height: 1;
     width: calc(100% - 3em);
+<<<<<<< HEAD
     margin-bottom: 10px;
+=======
+    margin-bottom: -10px;
+>>>>>>> 068b6f0 (Alignment adjustments)
 }
 
 .message-container .reply {
     vertical-align: top;
     line-height: 1;
+<<<<<<< HEAD
     width: calc(97% - 3em);
     margin-left: 60px;
     margin-bottom: 10px;
+=======
+    width: calc(100% - 3em);
+    margin-left: 60px;
+>>>>>>> 068b6f0 (Alignment adjustments)
 }
 
 .message-container .msg p {
     white-space: pre-wrap;
+<<<<<<< HEAD
     margin-top: 10px;
     margin-bottom: 10px;
+=======
+    margin-left: 56px;
+>>>>>>> 068b6f0 (Alignment adjustments)
 }
 
 .message-container .msg pre {
@@ -151,14 +165,14 @@ body {
 
 .message-container .message .msg {
     line-height: 1.5;
-    padding-top: 2px;
-    margin-left: 60px;
+    margin-top: -4px;
 }
 
 .message-container .reply .msg {
     line-height: 1.5;
     margin-top: -3px;
     margin-left: 56px;
+    margin-top: -8px;
 }
 
 .message-container .message .msg a {
@@ -172,7 +186,7 @@ body {
 .message-container .message-attachment {
     padding-left: 20px;
     border-left: 12px gray solid;
-    margin-left: 18px;
+    margin-left: 60px;
     margin-bottom: 20px;
     overflow-wrap: anywhere;
 }
@@ -190,8 +204,9 @@ body {
 }
 
 .message-reaction {
-  transform: scale(150%);
-  margin: 20px 20%;
+transform: scale(115%);
+margin: 0 55px 20px;
+transform-origin: left;
 }
 
 blockquote {
