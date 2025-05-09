@@ -72,6 +72,7 @@ body {
     clear: left;
     min-height: 56px;
     max-width: 98%;
+    margin-bottom: 4px;
 }
 
 .message-container:first-child {
@@ -127,17 +128,19 @@ body {
     vertical-align: top;
     line-height: 1;
     width: calc(100% - 3em);
+    margin-bottom: -10px;
 }
 
 .message-container .reply {
     vertical-align: top;
     line-height: 1;
     width: calc(100% - 3em);
-    margin-left: 80px;
+    margin-left: 60px;
 }
 
 .message-container .msg p {
     white-space: pre-wrap;
+    margin-left: 56px;
 }
 
 .message-container .msg pre {
@@ -147,10 +150,12 @@ body {
 
 .message-container .message .msg {
     line-height: 1.5;
+    margin-top: -4px;
 }
 
 .message-container .reply .msg {
     line-height: 1.5;
+    margin-top: -8px;
 }
 
 .message-container .message .msg a {
@@ -164,7 +169,7 @@ body {
 .message-container .message-attachment {
     padding-left: 20px;
     border-left: 12px gray solid;
-    margin-left: 18px;
+    margin-left: 60px;
     margin-bottom: 20px;
     overflow-wrap: anywhere;
 }
@@ -182,8 +187,9 @@ body {
 }
 
 .message-reaction {
-  transform: scale(150%);
-  margin: 20px 20%;
+transform: scale(115%);
+margin: 0 55px 20px;
+transform-origin: left;
 }
 
 blockquote {
