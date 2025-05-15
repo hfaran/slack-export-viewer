@@ -70,6 +70,8 @@ class SlackFormatter(object):
         message = self.slack_to_accepted_emoji(message)
         message = emoji.emojize(message, language='alias')
 
+        message = message.replace("\n", "<br>")
+
         if process_markdown:
             # Handle bold (convert * * to ** **)
             message = re.sub(r'\*', "**", message)
