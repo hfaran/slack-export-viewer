@@ -1,5 +1,7 @@
 html {
     font-family: 'Lato', sans-serif;
+    height: 100%;
+    overflow: hidden;
 }
 
 body {
@@ -10,8 +12,6 @@ body {
 #slack-archive-viewer {
     padding: 0;
     margin: 0;
-    height: 100vh;
-    overflow: hidden;
 }
 
 #sidebar {
@@ -148,16 +148,18 @@ body {
 }
 
 .message-container .message .msg {
-    line-height: 1.5;
+    line-height: 1.4666;
     padding-top: 2px;
     margin-left: 60px;
 }
 
+
 .message-container .reply .msg {
-    line-height: 1.5;
-    margin-top: -3px;
+    line-height: 1.4666;
+    margin-top: 8px;
     margin-left: 56px;
 }
+
 
 .message-container .message .msg a {
     overflow-wrap: anywhere;
@@ -170,7 +172,7 @@ body {
 .message-container .message-attachment {
     padding-left: 20px;
     border-left: 12px gray solid;
-    margin-left: 60px;
+    margin-left: 5px;
     margin-bottom: 6px;
     overflow-wrap: anywhere;
 }
@@ -196,9 +198,9 @@ body {
 blockquote {
     padding-left: 20px;
     border-left: 12px gray solid;
-    margin-left: 60px;
-    margin-top: 10px;
-    margin-bottom: 10px;
+    margin-left: 5px;
+    margin-top: 0px;
+    margin-bottom: 0px;
 }
 
 ul, ol {

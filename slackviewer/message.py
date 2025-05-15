@@ -132,11 +132,11 @@ class Message(object):
         """Format rich text elements based on their type and styles"""
         if element["type"] == "rich_text_quote":
             # Start the quote block
-            quote_text = "<blockquote>\n"
+            quote_text = "<blockquote>"
             # Recursively format nested elements
             quote_text += ''.join(self._format_rich_text_element(nested_element) for nested_element in element["elements"])
             # Close the quote block
-            quote_text += "</blockquote>\n"
+            quote_text += "</blockquote>"
             return quote_text
 
         elif element["type"] == "rich_text_section":
@@ -165,11 +165,11 @@ class Message(object):
         elif element["type"] == "rich_text_list":
             list_text = ""
             if element["style"] == "bullet":
-                list_text += "<ul>\n"
+                list_text += "<ul>"
                 list_text += "\n".join(f"<li>{self._format_rich_text_element(nested_element)}</li>" for nested_element in element["elements"])
                 list_text += "</ul>\n"
             elif element["style"] == "ordered":
-                list_text += "<ol>\n"
+                list_text += "<ol>"
                 list_text += "\n".join(f"<li>{self._format_rich_text_element(nested_element)}</li>" for nested_element in element["elements"])
                 list_text += "</ol>\n"
             else:
