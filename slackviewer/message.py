@@ -153,7 +153,7 @@ class Message(object):
             return text
 
         elif element["type"] == "link":
-            return f"<{element['url']}|{element.get('text', element['url'])}>"
+            return f"<a href='{element['url']}'>{element.get('text', element['url'])}</a>"
 
         elif element["type"] == "user":
             user = self._formatter.find_user(self.user_message(element['user_id']))
