@@ -96,7 +96,7 @@ class SlackFormatter(object):
         return message
 
     def selective_replace(self, text):
-        # Render newlines but with exceptions for code (and attachment text maybe?)
+        # Render newlines but with exception for code
         result = []
         code_blocks = re.split(r"(```.*?```)", text, flags=re.DOTALL)
         for block in code_blocks:
