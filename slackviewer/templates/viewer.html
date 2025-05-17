@@ -5,8 +5,11 @@
     <meta charset="UTF-8">
     <title>Slack Export - #{{ name }}</title>
     {% if not no_external_references %}
-    <link rel=stylesheet type=text/css
-          href="{{ url_for('static', filename='viewer.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='viewer.css') }}">
+    {% else %}
+    <style>
+        {{ viewer_css_contents|safe }}
+    </style>
     {% endif %}
 </head>
 <body>
