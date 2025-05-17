@@ -9,6 +9,9 @@ app = flask.Flask(
     static_folder="static"
 )
 
+def read_css_file(file_path):
+    with open(file_path, 'r') as file:
+        return file.read()
 
 @app.route("/channel/<name>/")
 def channel_name(name):
@@ -18,6 +21,8 @@ def channel_name(name):
     dm_users = list(flask._app_ctx_stack.dm_users)
     mpim_users = list(flask._app_ctx_stack.mpim_users)
 
+    viewer_css_contents = read_css_file(os.path.join(app.static_folder, 'viewer.css')) if app.no_external_references else None
+
     return flask.render_template("viewer.html", messages=messages,
                                  name=name.format(name=name),
                                  channels=sorted(channels),
@@ -25,7 +30,8 @@ def channel_name(name):
                                  dm_users=dm_users,
                                  mpim_users=mpim_users,
                                  no_sidebar=app.no_sidebar,
-                                 no_external_references=app.no_external_references)
+                                 no_external_references=app.no_external_references,
+                                 viewer_css_contents=viewer_css_contents)
 
 
 @app.route("/channel/<name>/attachments/<attachment>")
@@ -41,6 +47,8 @@ def group_name(name):
     dm_users = list(flask._app_ctx_stack.dm_users)
     mpim_users = list(flask._app_ctx_stack.mpim_users)
 
+    viewer_css_contents = read_css_file(os.path.join(app.static_folder, 'viewer.css')) if app.no_external_references else None
+
     return flask.render_template("viewer.html", messages=messages,
                                  name=name.format(name=name),
                                  channels=sorted(channels),
@@ -48,7 +56,8 @@ def group_name(name):
                                  dm_users=dm_users,
                                  mpim_users=mpim_users,
                                  no_sidebar=app.no_sidebar,
-                                 no_external_references=app.no_external_references)
+                                 no_external_references=app.no_external_references,
+                                 viewer_css_contents=viewer_css_contents)
 
 
 @app.route("/group/<name>/attachments/<attachment>")
@@ -64,6 +73,8 @@ def dm_id(id):
     dm_users = list(flask._app_ctx_stack.dm_users)
     mpim_users = list(flask._app_ctx_stack.mpim_users)
 
+    viewer_css_contents = read_css_file(os.path.join(app.static_folder, 'viewer.css')) if app.no_external_references else None
+
     return flask.render_template("viewer.html", messages=messages,
                                  id=id.format(id=id),
                                  channels=sorted(channels),
@@ -71,7 +82,8 @@ def dm_id(id):
                                  dm_users=dm_users,
                                  mpim_users=mpim_users,
                                  no_sidebar=app.no_sidebar,
-                                 no_external_references=app.no_external_references)
+                                 no_external_references=app.no_external_references,
+                                 viewer_css_contents=viewer_css_contents)
 
 
 @app.route("/dm/<name>/attachments/<attachment>")
@@ -87,6 +99,8 @@ def mpim_name(name):
     dm_users = list(flask._app_ctx_stack.dm_users)
     mpim_users = list(flask._app_ctx_stack.mpim_users)
 
+    viewer_css_contents = read_css_file(os.path.join(app.static_folder, 'viewer.css')) if app.no_external_references else None
+
     return flask.render_template("viewer.html", messages=messages,
                                  name=name.format(name=name),
                                  channels=sorted(channels),
@@ -94,7 +108,8 @@ def mpim_name(name):
                                  dm_users=dm_users,
                                  mpim_users=mpim_users,
                                  no_sidebar=app.no_sidebar,
-                                 no_external_references=app.no_external_references)
+                                 no_external_references=app.no_external_references,
+                                 viewer_css_contents=viewer_css_contents)
 
 
 @app.route("/mpim/<name>/attachments/<attachment>")
@@ -121,3 +136,4 @@ def index():
         return mpim_name(mpims[0])
     else:
         return "No content was found in your export that we could render."
+
