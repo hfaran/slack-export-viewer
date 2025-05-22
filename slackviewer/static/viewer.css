@@ -125,7 +125,7 @@ body {
     vertical-align: top;
     line-height: 1;
     width: calc(100% - 3em);
-    margin-bottom: -10px;
+    margin-bottom: -4px;
 }
 
 .message-container .reply {
@@ -173,7 +173,7 @@ body {
     padding-left: 20px;
     border-left: 12px gray solid;
     margin-left: 5px;
-    margin-bottom: 6px;
+    margin-bottom: 10px;
     overflow-wrap: anywhere;
 }
 
