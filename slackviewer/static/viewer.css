@@ -199,8 +199,8 @@ blockquote {
     padding-left: 20px;
     border-left: 12px gray solid;
     margin-left: 5px;
-    margin-top: 0px;
-    margin-bottom: 0px;
+    margin-top: -2px;
+    margin-bottom: 2px;
 }
 
 ul, ol {
