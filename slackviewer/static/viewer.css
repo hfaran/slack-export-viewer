@@ -203,10 +203,15 @@ blockquote {
     margin-bottom: 2px;
 }
 
-ul, ol {
-    padding-left: 20px;
-    margin-left: 60px;
+.msg ul, .msg ol {
+  padding-left: 20px;
+  margin-left: 60px;
+  margin-bottom: -20px;
+  li {
+    margin: -10px auto;
+  }
 }
+
 
 .channel_join .msg, .channel_topic .msg,
 .bot_add .msg, .app_conversation_join .msg {
