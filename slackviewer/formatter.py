@@ -70,6 +70,9 @@ class SlackFormatter(object):
         message = self.slack_to_accepted_emoji(message)
         message = emoji.emojize(message, language='alias')
 
+        message = self.selective_replace(message)
+
+
         if process_markdown:
             # Handle bold (convert * * to ** **)
             message = re.sub(r'\*', "**", message)
@@ -91,6 +94,18 @@ class SlackFormatter(object):
         message = message.replace("\n<li>", "<li>")
 
         return message
+
+    def selective_replace(self, text):
+        # Render newlines but with exception for code
+        result = []
+        code_blocks = re.split(r"(```.*?```)", text, flags=re.DOTALL)
+        for block in code_blocks:
+            if block.startswith("```") and block.endswith("```"):
+                result.append(block)
+            else:
+                result.append(block.replace("\n", "<br>"))
+        return "".join(result)
+
 
     def slack_to_accepted_emoji(self, message):
         """Convert some Slack emoji shortcodes to more universal versions"""
