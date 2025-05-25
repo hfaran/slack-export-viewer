@@ -184,9 +184,12 @@ class Message(object):
             else:
                 return element["name"]
 
+        # Prevent unwanted formatting of preformatted text
         elif element["type"] == "rich_text_preformatted":
             preformatted_text = ""
             for nested_element in element["elements"]:
+                if nested_element["type"] == "text":
+                    nested_element["text"] = nested_element["text"].replace("_", "&#95;")
                 preformatted_text += self._format_rich_text_element(nested_element)
             return f"<pre>{preformatted_text}</pre>"
 
@@ -198,7 +201,6 @@ class Message(object):
             else:
                 return f"<a href='https://{self.slack_name}.slack.com/archives/{channel_id}'>[ Unknown channel {channel_id} ]</a>"
 
-        # Add more element types as needed
         logging.warning(f"Unsupported rich text element type '{element['type']}' for {element}")
         return ""
 
