@@ -132,11 +132,11 @@ class Message(object):
         """Format rich text elements based on their type and styles"""
         if element["type"] == "rich_text_quote":
             # Start the quote block
-            quote_text = "<blockquote>\n"
+            quote_text = "<blockquote>"
             # Recursively format nested elements
             quote_text += ''.join(self._format_rich_text_element(nested_element) for nested_element in element["elements"])
             # Close the quote block
-            quote_text += "</blockquote>\n"
+            quote_text += "</blockquote>"
             return quote_text
 
         elif element["type"] == "rich_text_section":
@@ -153,7 +153,9 @@ class Message(object):
             return text
 
         elif element["type"] == "link":
-            return f"<{element['url']}|{element.get('text', element['url'])}>"
+            text = element.get('text', element['url']).replace("_", "&#95;")
+            return f"<a href='{element['url']}'>{text}</a>"
+
 
         elif element["type"] == "user":
             user = self._formatter.find_user(self.user_message(element['user_id']))
@@ -165,11 +167,11 @@ class Message(object):
         elif element["type"] == "rich_text_list":
             list_text = ""
             if element["style"] == "bullet":
-                list_text += "<ul>\n"
+                list_text += "<ul>"
                 list_text += "\n".join(f"<li>{self._format_rich_text_element(nested_element)}</li>" for nested_element in element["elements"])
                 list_text += "</ul>\n"
             elif element["style"] == "ordered":
-                list_text += "<ol>\n"
+                list_text += "<ol>"
                 list_text += "\n".join(f"<li>{self._format_rich_text_element(nested_element)}</li>" for nested_element in element["elements"])
                 list_text += "</ol>\n"
             else:
@@ -182,9 +184,12 @@ class Message(object):
             else:
                 return element["name"]
 
+        # Prevent unwanted formatting of preformatted text
         elif element["type"] == "rich_text_preformatted":
             preformatted_text = ""
             for nested_element in element["elements"]:
+                if nested_element["type"] == "text":
+                    nested_element["text"] = nested_element["text"].replace("_", "&#95;")
                 preformatted_text += self._format_rich_text_element(nested_element)
             return f"<pre>{preformatted_text}</pre>"
 
@@ -196,7 +201,6 @@ class Message(object):
             else:
                 return f"<a href='https://{self.slack_name}.slack.com/archives/{channel_id}'>[ Unknown channel {channel_id} ]</a>"
 
-        # Add more element types as needed
         logging.warning(f"Unsupported rich text element type '{element['type']}' for {element}")
         return ""
 
