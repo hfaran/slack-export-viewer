@@ -29,8 +29,18 @@ class Reader(object):
 
         # slack name that is in the url https://<slackname>.slack.com
         self._slack_name = self._get_slack_name()
+
         # TODO: Make sure this works
-        with io.open(os.path.join(self._PATH, "users.json"), encoding="utf8") as f:
+
+        users_file = os.path.join(self._PATH, "users.json")
+        if not os.path.exists(users_file):
+            enterprise_users_file = os.path.join(self._PATH, "org_users.json")
+            if os.path.exists(enterprise_users_file):
+                users_file = enterprise_users_file
+            else:
+                logging.warning(f"Neither 'users.json' nor 'org_users.json' was found at {self._PATH}. Is this file not present or in the wrong location?")
+
+        with io.open(users_file, encoding="utf8") as f:
             self.__USER_DATA = {u["id"]: User(u) for u in json.load(f)}
             slackbot = {
                 "id": "USLACKBOT",
