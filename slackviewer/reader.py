@@ -30,6 +30,13 @@ class Reader(object):
         # slack name that is in the url https://<slackname>.slack.com
         self._slack_name = self._get_slack_name()
 
+        self.filter_user_attribute = None
+        self.filter_user_value = None
+        if config.filter_user:
+            if ":" not in config.filter_user:
+                raise ValueError("Invalid filter_user format. Use <attribute:value>")
+            self.filter_user_attribute, self.filter_user_value = config.filter_user.split(":", 1)
+
         # TODO: Make sure this works
 
         users_file = os.path.join(self._PATH, "users.json")
@@ -235,7 +242,10 @@ class Reader(object):
                     day_messages.sort(key=Reader._extract_time)
 
                     c_id = channel_name_to_id[name]
-                    messages.extend([Message(formatter, d, c_id, self._slack_name) for d in day_messages])
+                    for d in day_messages:
+                        msg_obj = Message(formatter, d, c_id, self._slack_name)
+                        if self._filter_user(msg_obj):
+                            messages.append(msg_obj)
 
             chats[name] = messages
         chats = self._build_threads(chats)
@@ -244,6 +254,30 @@ class Reader(object):
             self._EMPTY_DMS = empty_dms
 
         return chats
+
+    def _filter_user(self, msg_obj):
+        if not self.filter_user_attribute:
+            return True
+
+        user = msg_obj.user
+        if not user:
+            return False
+
+        attr = self.filter_user_attribute
+        val = self.filter_user_value
+
+        if attr == "id":
+            return user["id"] == val
+        elif attr == "name":
+            return user["name"] == val
+        elif attr == "real_name":
+            return user._raw.get("real_name") == val
+        elif attr == "email":
+            return user.email == val
+        elif attr == "display_name":
+            return user.display_name == val
+        else:
+            return False
 
     def _build_threads(self, channel_data):
         """

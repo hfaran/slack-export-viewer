@@ -61,6 +61,12 @@ def clean(wet):
     Comma separated list of channels to hide.
     Environment var: SEV_HIDE_CHANNELS (default: None)
     """)
+@click.option("--filter-user", default=None, type=str, envvar="SEV_FILTER_USER", help="""\b
+    Filter messages by user attribute.
+    Format: <attribute:value>
+    Available attributes: id, name, real_name, email, display_name
+    Environment var: SEV_FILTER_USER (default: None)
+    """)
 @click.argument('archive')
 def export(**kwargs):
     config = Config(kwargs)
