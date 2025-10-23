@@ -25,18 +25,10 @@ text = file_path.read_text(encoding="utf-8")
 pattern = re.compile(r"^(__version__\s*=\s*)(['\"])([^'\"]*)(['\"])",
                      re.MULTILINE)
 
-match = pattern.search(text)
-if not match:
+if not pattern.search(text):
     print(f"Error: __version__ assignment not found in {file_path}")
     sys.exit(1)
 
-# Use a callable replacement to avoid ambiguous backreference parsing
-new_text = pattern.sub(
-    lambda m: f"{m.group(1)}{m.group(2)}{new_version}{m.group(4)}",
-    text,
-    count=1,
-)
+new_text = pattern.sub(rf"\1\2{new_version}\4", text, count=1)
 file_path.write_text(new_text, encoding="utf-8")
-
-quote = match.group(2)
-print(f"Updated {file_path} -> __version__ = {quote}{new_version}{quote}")
+print(f"Updated {file_path} -> __version__ = '{new_version}'")
