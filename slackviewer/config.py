@@ -26,6 +26,7 @@ class Config(object):
         self.since = config.get("since")
         self.skip_channel_member_change = config.get("skip_channel_member_change")
         self.thread_note = config.get("thread_note")
+        self.filter_user = config.get("filter_user")
 
         # CLI only
         self.template = config.get("template")

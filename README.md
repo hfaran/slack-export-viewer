@@ -149,6 +149,10 @@ Options:
                                   Environment var: SEV_TEMPLATE (default: "export_single.html")
   --hide-channels TEXT            Comma separated list of channels to hide.
                                   Environment var: SEV_HIDE_CHANNELS (default: None)
+  --filter-user TEXT              Filter messages by user attribute.
+                                  Format: <attribute:value>
+                                  Available attributes: id, name, real_name, email, display_name
+                                  Environment var: SEV_FILTER_USER (default: None)
   --help                          Show this message and exit.
 ```
 
