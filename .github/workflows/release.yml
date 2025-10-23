@@ -1,11 +1,17 @@
-name: Automated release (update version, commit, create release with changelog)
+name: Automated release (semver bump Major/Minor/Patch, commit, create release with changelog)
 
 on:
   workflow_dispatch:
     inputs:
-      version:
-        description: 'New version (e.g. 0.9.1)'
+      bump:
+        description: 'Which part of the SemVer to bump'
         required: true
+        default: 'Patch'
+        type: choice
+        options:
+        - Major
+        - Minor
+        - Patch
       branch:
         description: 'Branch to update (default: master)'
         required: false
@@ -33,9 +39,58 @@ jobs:
         with:
           python-version: '3.x'
 
+      - name: Fetch tags
+        run: |
+          git fetch --tags --prune
+
+      - name: Determine previous tag and compute new version
+        id: bump_version
+        run: |
+          # determine the most recent v* tag (previous release)
+          PREV_TAG=$(git tag --list "v*" --sort=-creatordate | sed -n '1p' || true)
+          echo "Previous tag: $PREV_TAG"
+          if [ -z "$PREV_TAG" ]; then
+            PREV_VERSION="0.0.0"
+          else
+            PREV_VERSION="${PREV_TAG#v}"
+          fi
+          echo "Previous version: $PREV_VERSION"
+
+          # split into components
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$PREV_VERSION"
+          MAJOR=${MAJOR:-0}
+          MINOR=${MINOR:-0}
+          PATCH=${PATCH:-0}
+
+          case "${{ github.event.inputs.bump }}" in
+            Major)
+              MAJOR=$((MAJOR + 1))
+              MINOR=0
+              PATCH=0
+              ;;
+            Minor)
+              MINOR=$((MINOR + 1))
+              PATCH=0
+              ;;
+            Patch)
+              PATCH=$((PATCH + 1))
+              ;;
+            *)
+              echo "Unknown bump type: '${{ github.event.inputs.bump }}'"
+              exit 1
+              ;;
+          esac
+
+          NEW_VERSION="${MAJOR}.${MINOR}.${PATCH}"
+          echo "New version: $NEW_VERSION"
+
+          # expose outputs
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "previous_tag=$PREV_TAG" >> $GITHUB_OUTPUT
+
       - name: Update version in slackviewer/__init__.py
         run: |
-          python3 scripts/update_version.py "${{ github.event.inputs.version }}" slackviewer/__init__.py
+          python3 scripts/update_version.py "${{ steps.bump_version.outputs.new_version }}" slackviewer/__init__.py
 
       - name: Commit version bump
         id: commit
@@ -46,19 +101,13 @@ jobs:
           git config user.name "${GIT_AUTHOR_NAME}"
           git config user.email "${GIT_AUTHOR_EMAIL}"
           git add slackviewer/__init__.py
-          git commit -m "Release ${{ github.event.inputs.version }} [skip ci]" || echo "No changes to commit"
+          git commit -m "Release ${{ steps.bump_version.outputs.new_version }} [skip ci]" || echo "No changes to commit"
           git push origin "${{ github.event.inputs.branch }}"
-
-      - name: Fetch tags
-        run: |
-          git fetch --tags --prune
 
       - name: Generate changelog from commits since previous tag
         id: generate_changelog
         run: |
-          # determine the most recent v* tag (previous release)
-          PREV_TAG=$(git tag --list "v*" --sort=-creatordate | sed -n '1p' || true)
-          echo "Previous tag: $PREV_TAG"
+          PREV_TAG="${{ steps.bump_version.outputs.previous_tag }}"
           if [ -z "$PREV_TAG" ]; then
             echo "No previous tag found, generating changelog from repository root."
             python3 scripts/generate_changelog.py --output changelog.md
@@ -67,12 +116,10 @@ jobs:
             python3 scripts/generate_changelog.py --since "$PREV_TAG" --output changelog.md
           fi
 
-          # Print changelog and set as step output for use in release body.
           echo "Changelog:"
           cat changelog.md || true
 
           # Write the changelog to GITHUB_OUTPUT for later steps to consume.
-          # Use multi-line output format:
           echo "changelog<<EOF" >> $GITHUB_OUTPUT
           cat changelog.md >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
@@ -83,7 +130,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: "v${{ github.event.inputs.version }}"
-          release_name: "${{ github.event.inputs.version }}"
+          tag_name: "v${{ steps.bump_version.outputs.new_version }}"
+          release_name: "${{ steps.bump_version.outputs.new_version }}"
           target_commitish: "${{ github.event.inputs.branch }}"
           body: ${{ steps.generate_changelog.outputs.changelog }}
