@@ -1,0 +1,32 @@
+[tool.poetry]
+name = "slack-export-viewer"
+version = "3.5.0"
+description = "Slack Export Archive Viewer"
+authors = ["hfaran <hamzafaran@outlook.com>"]
+license = "MIT"
+readme = "README.md"
+homepage = "https://github.com/hfaran/slack-export-viewer"
+repository = "https://github.com/hfaran/slack-export-viewer"
+packages = [{include = "slackviewer"}]
+
+[tool.poetry.dependencies]
+python = ">=3.12"
+click = "*"
+Werkzeug = "<3.0.0"
+Flask = "<3.0.0"
+markdown2 = "*"
+emoji = ">=2.0.0,<3.0"
+frozen-flask = ">=1.0.1,<2.0"
+
+[tool.poetry.group.dev.dependencies]
+pypandoc = "*"
+pytest = "*"
+twine = "*"
+
+[tool.poetry.scripts]
+slack-export-viewer = "slackviewer.main:main"
+slack-export-viewer-cli = "slackviewer.cli:cli"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
