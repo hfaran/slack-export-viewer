@@ -12,7 +12,7 @@ packages = [{include = "slackviewer"}]
 [tool.poetry.dependencies]
 python = ">=3.12"
 click = "*"
-Werkzeug = "<3.0.0"
+Werkzeug = "<4.0.0"
 Flask = "<3.0.0"
 markdown2 = "*"
 emoji = ">=2.0.0,<3.0"
