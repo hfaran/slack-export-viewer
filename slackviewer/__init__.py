@@ -1,1 +1,6 @@
-__version__ = "4.0.0"
+from importlib.metadata import version, PackageNotFoundError
+
+try:
+    __version__ = version("slack-export-viewer")
+except PackageNotFoundError:
+    __version__ = "unknown"
