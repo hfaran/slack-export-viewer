@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "slack-export-viewer"
-version = "3.5.0"
+version = "4.0.0"
 description = "Slack Export Archive Viewer"
 authors = ["hfaran"]
 license = "MIT"
