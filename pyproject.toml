@@ -2,7 +2,7 @@
 name = "slack-export-viewer"
 version = "3.5.0"
 description = "Slack Export Archive Viewer"
-authors = ["hfaran <hamzafaran@outlook.com>"]
+authors = ["hfaran"]
 license = "MIT"
 readme = "README.md"
 homepage = "https://github.com/hfaran/slack-export-viewer"
@@ -12,11 +12,11 @@ packages = [{include = "slackviewer"}]
 [tool.poetry.dependencies]
 python = ">=3.12"
 click = "*"
-Werkzeug = "<3.0.0"
-Flask = "<3.0.0"
+Werkzeug = ">=3.0.0"
+Flask = ">=3.0.0"
 markdown2 = "*"
 emoji = ">=2.0.0,<3.0"
-frozen-flask = ">=1.0.1,<2.0"
+frozen-flask = ">=1.0.1"
 
 [tool.poetry.group.dev.dependencies]
 pypandoc = "*"
