@@ -2,7 +2,6 @@ import webbrowser
 import os
 
 import click
-import flask
 
 from slackviewer.app import app
 from slackviewer.config import Config
@@ -20,26 +19,25 @@ def configure_app(app, config):
 
     reader = Reader(config)
 
-    top = flask._app_ctx_stack
-    top.path = reader.archive_path()
-    top.channels = reader.compile_channels(config.channels)
-    top.groups = reader.compile_groups()
-    top.dms = {}
-    top.dm_users = []
-    top.mpims = {}
-    top.mpim_users = []
+    app.slack_path = reader.archive_path()
+    app.channels = reader.compile_channels(config.channels)
+    app.groups = reader.compile_groups()
+    app.dms = {}
+    app.dm_users = []
+    app.mpims = {}
+    app.mpim_users = []
     if config.show_dms:
-        top.dms = reader.compile_dm_messages()
-        top.dm_users = reader.compile_dm_users()
-        top.mpims = reader.compile_mpim_messages()
-        top.mpim_users = reader.compile_mpim_users()
+        app.dms = reader.compile_dm_messages()
+        app.dm_users = reader.compile_dm_users()
+        app.mpims = reader.compile_mpim_messages()
+        app.mpim_users = reader.compile_mpim_users()
 
     reader.warn_not_found_to_hide_channels()
 
     # remove any empty channels & groups. DM's are needed for now
     # since the application loads the first
-    top.channels = {k: v for k, v in top.channels.items() if v}
-    top.groups = {k: v for k, v in top.groups.items() if v}
+    app.channels = {k: v for k, v in app.channels.items() if v}
+    app.groups = {k: v for k, v in app.groups.items() if v}
 
 
 @click.command()
@@ -126,7 +124,7 @@ def main(**kwargs):
         # This tells freezer about the channel URLs
         @freezer.register_generator
         def channel_name():
-            for channel in flask._app_ctx_stack.channels:
+            for channel in app.channels:
                 yield {"name": channel}
 
         freezer.freeze()
