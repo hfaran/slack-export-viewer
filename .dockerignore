@@ -1,0 +1,48 @@
+# Poetry (except pyproject.toml and poetry.lock)
+.poetry
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Testing
+.pytest/
+.coverage
+htmlcov/
+.tox/
+.mypy_cache/
+
+# Documentation (except README.md)
+*.md
+!README.md  # Keep README for documentation
+
+# Build artifacts
+dist/
+build/
+*.whl
+
+# Slack export (if accidentally included)
+*.zip
+!docker-compose.yml  # docker-compose stays
+
+# Misc
+.git/
+.gitignore
+.gitattributes
+*.log
+.env
+.env.local
+.DS_Store
+Thumbs.db

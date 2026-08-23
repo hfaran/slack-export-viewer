@@ -70,3 +70,5 @@ target/
 
 # Environments
 venv/
+
+slack-export.zip

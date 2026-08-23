@@ -83,6 +83,64 @@ Options:
 ```
 
 
+## Docker
+
+You can run `slack-export-viewer` in a container using Docker and Docker Compose.
+
+### Prerequisites
+
+- Docker and Docker Compose installed
+- Your Slack export archive (`.zip` file or directory)
+
+### Quick Start
+
+1. Build and run the container:
+
+```bash
+docker-compose up --build
+```
+
+2. Open your browser to [http://localhost:5000](http://localhost:5000)
+
+### Configuration
+
+Before running, customize the `docker-compose.yml` file:
+
+- **Archive path**: Update the `source` in the volumes section to point to your Slack export archive
+  ```yaml
+  volumes:
+    - type: bind
+      source: ./your-export.zip  # Change this path
+      target: /app/slack-export.zip
+      read_only: true
+  ```
+
+- **Environment variables**: Modify the `environment` section to set options:
+  ```yaml
+  environment:
+    - SEV_ARCHIVE=/app/slack-export.zip
+    - SEV_PORT=5000
+    - SEV_IP=0.0.0.0
+    - SEV_NO_BROWSER=true
+    - SEV_CHANNELS=general,random
+    - SEV_SHOW_DMS=false
+  ```
+
+See the [Usage](#usage) section for all available command-line options.
+
+### Running in Background
+
+```bash
+docker-compose up -d
+```
+
+### Stopping the Container
+
+```bash
+docker-compose down
+```
+
+
 ## Usage
 
 ### 1) Grab your Slack team's export
