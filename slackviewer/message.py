@@ -100,32 +100,27 @@ class Message(object):
             text = self._message.get("text", "")
             if not text or text.strip() == "":
                 text = "[ MESSAGE TEXT EMPTY ]"
-
         return self._formatter.render_text(text)
-
 
     def _generate_blocks_text(self, blocks):
         """Build a message together from various message["blocks"]"""
         text = ""
         for block in blocks:
-            if block["type"] in ["rich_text", "rich_text_quote"]:
+            if block["type"] == "image":
+                text += self._format_block_type(block, block["type"])
+            elif block["type"] in ["rich_text", "rich_text_quote"]:
                 for element in block["elements"]:
                     text += self._format_rich_text_element(element)
-
             elif "fields" in block:
                 for field in block["fields"]:
                     text += self._format_block_type(field, block["type"])
-
             elif "elements" in block:
                 for element in block["elements"]:
                     text += self._format_block_type(element, block["type"])
-
             elif "type" in block and block["type"] == "divider":
                 text += "---\n"
-
             else:
                 logging.warning(f"Unknown block type: {block}")
-
         return text
 
     def _format_rich_text_element(self, element):
@@ -153,9 +148,26 @@ class Message(object):
             return text
 
         elif element["type"] == "link":
-            text = element.get('text', element['url']).replace("_", "&#95;")
-            return f"<a href='{element['url']}'>{text}</a>"
+            text = element.get('text', "")
+            url = element.get('url', '')
 
+            # Unescape forward slashes in the URL
+            # Slack's block kit JSON sometimes encodes forward slashes
+            # as ""\\/" (a valid JSON escape). Python'sjson module may
+            # leave these as literal backslash+slash depending on the serialiser,
+            # so this replacement normalises them before using the URL as display text.
+            url = url.replace("\\/", "/")
+
+            if not text:
+                text = url
+
+            # Escape underscores only in display text, not in URL
+            text = text.replace("_", "&#95;")
+
+            # Escape quotes in URL for safe href attribute
+            url = url.replace('"', "&quot;")
+
+            return f'<a href="{url}">{text}</a>'
 
         elif element["type"] == "user":
             user = self._formatter.find_user(self.user_message(element['user_id']))
@@ -187,11 +199,33 @@ class Message(object):
         # Prevent unwanted formatting of preformatted text
         elif element["type"] == "rich_text_preformatted":
             preformatted_text = ""
+
+            def escape_preformatted(text):
+                """Escape text for safe display in preformatted blocks."""
+                text = text.replace("&", "&amp;")
+                text = text.replace("<", "&lt;")
+                text = text.replace(">", "&gt;")
+                text = text.replace('"', "&quot;")
+                text = text.replace("'", "&#39;")
+                text = text.replace("-", "&#45;")
+                text = text.replace("_", "&#95;")
+                return text
+
             for nested_element in element["elements"]:
                 if nested_element["type"] == "text":
-                    nested_element["text"] = nested_element["text"].replace("_", "&#95;")
-                preformatted_text += self._format_rich_text_element(nested_element)
+                    preformatted_text += escape_preformatted(nested_element["text"])
+                elif nested_element["type"] == "link":
+                    # For links in preformatted text, output the URL as plain text, not HTML
+                    url = nested_element.get("url", "")
+                    text = nested_element.get("text", url)
+                    preformatted_text += escape_preformatted(text)
+                else:
+                    # For any other nested elements, just get their text representation
+                    # without converting to HTML
+                    preformatted_text += self._get_plain_text_from_element(nested_element)
+
             return f"<pre>{preformatted_text}</pre>"
+
 
         elif element["type"] == "channel":
             channel_id = element["channel_id"]
@@ -203,9 +237,6 @@ class Message(object):
 
         logging.warning(f"Unsupported rich text element type '{element['type']}' for {element}")
         return ""
-
-
-
 
     def _format_block_type(self, text_obj, b_type):
         """Format the text based on the block type"""
@@ -258,30 +289,6 @@ class Message(object):
         else:
             logging.warning(f"Unsupported block type '{b_type}' for {text_obj}")
             return f"unsupported_block({b_type}: {text_obj}\n\n)"
-
-
-
-    def _generate_blocks_text(self, blocks):
-        """Build a message together from various message["blocks"]"""
-        text = ""
-        for block in blocks:
-            if block["type"] == "image":
-                text += self._format_block_type(block, block["type"])
-            elif block["type"] in ["rich_text", "rich_text_quote"]:
-                for element in block["elements"]:
-                    text += self._format_rich_text_element(element)
-            elif "fields" in block:
-                for field in block["fields"]:
-                    text += self._format_block_type(field, block["type"])
-            elif "elements" in block:
-                for element in block["elements"]:
-                    text += self._format_block_type(element, block["type"])
-            elif "type" in block and block["type"] == "divider":
-                text += "---\n"
-            else:
-                logging.warning(f"Unknown block type: {block}")
-        return text
-
 
 
     def user_message(self, user_id):
