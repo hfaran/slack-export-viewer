@@ -279,6 +279,7 @@ class Reader(object):
         else:
             return False
 
+
     def _build_threads(self, channel_data):
         """
         Re-orders the JSON to allow for thread building.
@@ -289,7 +290,7 @@ class Reader(object):
         """
         for channel_name in channel_data.keys():
             replies = {}
-
+            thread_ts_messages = {}  # Track messages with thread_ts
             user_ts_lookup = {}
             items_to_remove = []
             for i, m in enumerate(channel_data[channel_name]):
@@ -303,6 +304,16 @@ class Reader(object):
                 if k not in user_ts_lookup:
                     user_ts_lookup[k] = []
                 user_ts_lookup[k].append((i, m))
+
+
+                # Track messages with thread_ts
+                thread_ts = m._message.get('thread_ts')
+                if thread_ts:
+                    thread_key = (user, thread_ts)
+                    if thread_key not in thread_ts_messages:
+                        thread_ts_messages[thread_key] = []
+                    thread_ts_messages[thread_key].append((i, m))
+
 
             for location, message in enumerate(channel_data[channel_name]):
                 # remove "<user> joined/left <channel>" message
@@ -330,6 +341,55 @@ class Reader(object):
                     for reply_obj_tuple in sorted_reply_objects:
                         items_to_remove.append(reply_obj_tuple[0])
                     replies[location] = [tup[1] for tup in sorted_reply_objects]
+
+            # Process thread_ts messages that weren't included in replies
+            for thread_key, thread_messages in thread_ts_messages.items():
+                user, parent_ts = thread_key
+                parent_location = None
+
+                # Find parent message location
+                for user, ts in user_ts_lookup:
+                    if ts == parent_ts:
+                        for idx, msg in user_ts_lookup[(user, ts)]:
+                            if msg._message.get('ts') == parent_ts:
+                                parent_location = idx
+                                break
+                        break
+
+                if parent_location is not None and parent_location in replies:
+                    # Only add messages that aren't already in the thread
+                    existing_ts = {msg._message.get('ts') for msg in replies[parent_location]}
+                    new_messages = [m for i, m in thread_messages if m._message.get('ts') not in existing_ts]
+
+                    if new_messages:
+                        # Check if any message has a 'replies' array that defines order
+                        ordered_messages = []
+                        unordered_messages = []
+
+                        for msg in new_messages:
+                            if 'replies' in msg._message:
+                                # Get the order from the replies array
+                                reply_order = {reply['ts']: msg for reply in msg._message['replies']}
+                                # Sort messages according to the replies array order
+                                ordered_messages.extend(
+                                    sorted([m for m in new_messages if m._message.get('ts') in reply_order],
+                                        key=lambda m: list(reply_order.keys()).index(m._message.get('ts')))
+                                )
+                            else:
+                                unordered_messages.append(msg)
+
+                        # Sort unordered messages by timestamp
+                        unordered_messages_sorted = sorted(unordered_messages,
+                                                        key=lambda m: m.time if m.time else 0)
+
+                        # Combine ordered and sorted unordered messages
+                        final_sorted_messages = ordered_messages + unordered_messages_sorted
+
+                        replies[parent_location].extend(final_sorted_messages)
+                        # Mark these messages for removal from their original positions
+                        for i, m in thread_messages:
+                            if m in final_sorted_messages:
+                                items_to_remove.append(i)
 
             # Create an OrderedDict of thread locations and replies in reverse numerical order
             sorted_threads = OrderedDict(sorted(replies.items(), reverse=True))
