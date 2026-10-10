@@ -3,7 +3,10 @@ from __future__ import unicode_literals
 import datetime
 import logging
 import emoji
+import re
 
+from markupsafe import Markup
+from html import unescape
 
 class Message(object):
 
@@ -73,7 +76,7 @@ class Message(object):
 
     @property
     def attachments(self):
-        return [ LinkAttachment("ATTACHMENT", entry, self._formatter)
+        return [ LinkAttachment("ATTACHMENT", entry, self._formatter, self)
             for entry in self._message.get("attachments", []) ]
 
     @property
@@ -82,7 +85,7 @@ class Message(object):
             allfiles = [self._message["file"]]
         else:
             allfiles = self._message.get("files", [])
-        return [ LinkAttachment("FILE", entry, self._formatter) for entry in allfiles ]
+        return [ LinkAttachment("FILE", entry, self._formatter, self) for entry in allfiles ]
 
     @property
     def msg(self):
@@ -100,32 +103,27 @@ class Message(object):
             text = self._message.get("text", "")
             if not text or text.strip() == "":
                 text = "[ MESSAGE TEXT EMPTY ]"
-
         return self._formatter.render_text(text)
-
 
     def _generate_blocks_text(self, blocks):
         """Build a message together from various message["blocks"]"""
         text = ""
         for block in blocks:
-            if block["type"] in ["rich_text", "rich_text_quote"]:
+            if block["type"] == "image":
+                text += self._format_block_type(block, block["type"])
+            elif block["type"] in ["rich_text", "rich_text_quote"]:
                 for element in block["elements"]:
                     text += self._format_rich_text_element(element)
-
             elif "fields" in block:
                 for field in block["fields"]:
                     text += self._format_block_type(field, block["type"])
-
             elif "elements" in block:
                 for element in block["elements"]:
                     text += self._format_block_type(element, block["type"])
-
             elif "type" in block and block["type"] == "divider":
                 text += "---\n"
-
             else:
                 logging.warning(f"Unknown block type: {block}")
-
         return text
 
     def _format_rich_text_element(self, element):
@@ -153,9 +151,26 @@ class Message(object):
             return text
 
         elif element["type"] == "link":
-            text = element.get('text', element['url']).replace("_", "&#95;")
-            return f"<a href='{element['url']}'>{text}</a>"
+            text = element.get('text', "")
+            url = element.get('url', '')
 
+            # Unescape forward slashes in the URL
+            # Slack's block kit JSON sometimes encodes forward slashes
+            # as ""\\/" (a valid JSON escape). Python'sjson module may
+            # leave these as literal backslash+slash depending on the serialiser,
+            # so this replacement normalises them before using the URL as display text.
+            url = url.replace("\\/", "/")
+
+            if not text:
+                text = url
+
+            # Escape underscores only in display text, not in URL
+            text = text.replace("_", "&#95;")
+
+            # Escape quotes in URL for safe href attribute
+            url = url.replace('"', "&quot;")
+
+            return f'<a href="{url}">{text}</a>'
 
         elif element["type"] == "user":
             user = self._formatter.find_user(self.user_message(element['user_id']))
@@ -203,9 +218,6 @@ class Message(object):
 
         logging.warning(f"Unsupported rich text element type '{element['type']}' for {element}")
         return ""
-
-
-
 
     def _format_block_type(self, text_obj, b_type):
         """Format the text based on the block type"""
@@ -258,30 +270,6 @@ class Message(object):
         else:
             logging.warning(f"Unsupported block type '{b_type}' for {text_obj}")
             return f"unsupported_block({b_type}: {text_obj}\n\n)"
-
-
-
-    def _generate_blocks_text(self, blocks):
-        """Build a message together from various message["blocks"]"""
-        text = ""
-        for block in blocks:
-            if block["type"] == "image":
-                text += self._format_block_type(block, block["type"])
-            elif block["type"] in ["rich_text", "rich_text_quote"]:
-                for element in block["elements"]:
-                    text += self._format_rich_text_element(element)
-            elif "fields" in block:
-                for field in block["fields"]:
-                    text += self._format_block_type(field, block["type"])
-            elif "elements" in block:
-                for element in block["elements"]:
-                    text += self._format_block_type(element, block["type"])
-            elif "type" in block and block["type"] == "divider":
-                text += "---\n"
-            else:
-                logging.warning(f"Unknown block type: {block}")
-        return text
-
 
 
     def user_message(self, user_id):
@@ -342,75 +330,177 @@ class LinkAttachment():
     # Fields that need to be processed for markup (and possibly markdown)
     _TEXT_FIELDS = {"pretext", "text", "footer"}
 
-    def __init__(self, attachment_type, raw, formatter):
+    def __init__(self, attachment_type, raw, formatter, parent_message):
         self._type = attachment_type
         self._raw = raw
         self._formatter = formatter
+        self._parent_message = parent_message
 
     def __getitem__(self, key):
+        # Check for blocks first (both message_blocks and blocks formats)
+        if key == "text":
+            # Check for message_blocks (nested format)
+            if self._raw.get("message_blocks"):
+                html_text = self._parent_message._generate_blocks_text(
+                    self._raw["message_blocks"][0]["message"]["blocks"]
+                )
+                return Markup(html_text)
+
+            # Check for blocks (direct format, as in your example)
+            elif self._raw.get("blocks"):
+                html_text = self._parent_message._generate_blocks_text(
+                    self._raw["blocks"]
+                )
+                return Markup(html_text)
+
+        # Process fields with emoji conversion
+        if key == "fields" and self._raw.get("fields"):
+            processed_fields = []
+            for field in self._raw["fields"]:
+                processed_field = field.copy()
+                if "value" in processed_field:
+                    # Convert emoji in field values
+                    processed_field["value"] = self._formatter.render_text(
+                        processed_field["value"],
+                        process_markdown=False
+                    )
+                if "title" in processed_field:
+                    # Also convert emoji in field titles (just in case)
+                    processed_field["title"] = self._formatter.render_text(
+                        processed_field["title"],
+                        process_markdown=False
+                    )
+                processed_fields.append(processed_field)
+            return processed_fields
+
         content = self._raw[key]
         if content and key in self._TEXT_FIELDS:
-            process_markdown = (key in self._raw.get("mrkdwn_in", []))
-            content = self._formatter.render_text(content, process_markdown)
+            # Always process markdown, not just when in mrkdwn_in
+            content = self._formatter.render_text(content, process_markdown=True)
+            # Unescape HTML entities like &rsquo;, &ldquo;, &rdquo;, &nbsp;, etc.
+            content = unescape(content)
+            # Prevent Jinja2 from escaping the HTML generated by render_text()
+            return Markup(content)
         return content
 
+    def get_blocks_text(self):
+        """
+        Generate and return text from message blocks if present in attachments.
+        Returns HTML-formatted text from blocks.
+        """
+        if not self._raw.get("message_blocks"):
+            return ""
+
+        blocks = self._raw["message_blocks"][0]["message"]["blocks"]
+        html_text = self._parent_message._generate_blocks_text(blocks)
+        # Prevent Jinja2 from escaping the HTML
+        return Markup(html_text)
+
+    @property
+    def blocks_text(self):
+        """Property that returns the HTML-formatted text from message blocks if present."""
+        return self.get_blocks_text()
+
+    def get_rendered_blocks_text(self):
+        """
+        Generate and return rendered text from message blocks if present.
+        Converts HTML to plain text for display.
+        """
+        html_text = self.get_blocks_text()
+        if not html_text:
+            return ""
+
+        # Convert HTML to plain text
+        plain_text = re.sub(r'<[^>]+>', '', html_text)  # Remove HTML tags
+        plain_text = plain_text.replace('&nbsp;', ' ')  # Replace HTML entities
+        return plain_text.strip()
+
+    @property
+    def rendered_blocks_text(self):
+        """Property that returns plain text from message blocks if present."""
+        return self.get_rendered_blocks_text()
+
+
     def thumbnail(self, size=None):
+        """Get thumbnail information if available.
+
+        Returns:
+            dict: With 'src', 'width', and 'height' if thumbnail exists
+            None: If no thumbnail is available
+        """
         size = size if size else self._DEFAULT_THUMBNAIL_SIZE
-        # ATTACHMENT type
+
+        # Standard wikimedia thumbnail sizes
+        #
+        # Due to how common it is to link to wikipedia,
+        # I expect this domain-specific improvement will be appreciated.
+        # We want to check wikipedia-generated attachments to confrom to
+        # thumbnail-linking standards set by https://phabricator.wikimedia.org/T414805
+        STANDARD_SIZES = [20, 40, 60, 120, 250, 330, 500, 960, 1280, 1920, 3840]
+
+        # ATTACHMENT type with direct image URL
         if "image_url" in self._raw:
             logging.debug("image_url path")
+            src = self._raw["image_url"]
+
+            # Normalize wikimedia URLs to standard thumbnail sizes
+            if "wikimedia.org" in src:
+                src = self._normalize_wikimedia_url(src, STANDARD_SIZES)
+
             return {
-                "src": self._raw["image_url"],
+                "src": src,
                 "width": self._raw.get("image_width"),
                 "height": self._raw.get("image_height"),
             }
-        else: # FILE type
-            thumb_key = "thumb_{}".format(size)
-            logging.debug("thumb path" + thumb_key)
+
+        # FILE type with thumbnail
+        thumb_key = f"thumb_{size}"
+        logging.debug("thumb path %s", thumb_key)
+
+        # Try different thumbnail keys
+        if thumb_key not in self._raw:
+            thumb_key = f"thumb_{self._raw.get('filetype')}"
             if thumb_key not in self._raw:
-                # let's try some fallback logic
-                thumb_key = "thumb_{}".format(self._raw.get("filetype"))
-                if thumb_key not in self._raw:
-                    # pick the first one that shows up in the iterator
-                    candidates = [k for k in self._raw.keys()
-                        if k.startswith("thumb_") and not k.endswith(("_w","_h"))]
-                    if candidates:
-                        thumb_key = candidates[0]
-                        logging.info("Fell back to thumbnail key %s for [%s]",
+                candidates = [k for k in self._raw.keys()
+                            if k.startswith("thumb_") and not k.endswith(("_w","_h"))]
+                if candidates:
+                    thumb_key = candidates[0]
+                    logging.info("Fell back to thumbnail key %s for [%s]",
                             thumb_key, self._raw.get("title"))
-            if thumb_key in self._raw:
-                return {
-                    "src": self._raw[thumb_key],
-                    "width": self._raw.get(thumb_key + "_w"),
-                    "height": self._raw.get(thumb_key + "_h"),
-                }
-            else:
-                logging.info("No thumbnail found for [%s]", self._raw.get("title"))
 
-    @property
-    def is_image(self):
-        return self._raw.get("mimetype", "").startswith("image/")
+        if thumb_key in self._raw:
+            return {
+                "src": self._raw[thumb_key],
+                "width": self._raw.get(f"{thumb_key}_w"),
+                "height": self._raw.get(f"{thumb_key}_h"),
+            }
 
-    @property
-    def link(self):
-        if "from_url" in self._raw:
-            return self._raw["from_url"]
-        else:
-            return self._raw.get("url_private")
+        logging.info("No thumbnail found for [%s]", self._raw.get("title"))
+        return None
 
-    @property
-    def fields(self):
+    def _normalize_wikimedia_url(self, url, standard_sizes):
         """
-        Fetch the "fields" list, and process the text within each field, including markdown
-        processing if the message indicates that the fields contain markdown.
+        Normalize wikimedia thumbnail URLs to standard sizes.
+        Replaces any px value with the closest standard size.
 
-        Only present on attachments, not files--this abstraction isn't 100% awesome.'
+        Args:
+            url: The wikimedia URL
+            standard_sizes: List of valid thumbnail sizes
+
+        Returns:
+            Normalized URL with standard size
         """
-        process_markdown = ("fields" in self._raw.get("mrkdwn_in", []))
-        fields = self._raw.get("fields", [])
-        if fields:
-            logging.debug("Rendering with markdown markdown %s for %s", process_markdown, fields)
-        return [
-            {"title": e["title"], "short": e.get("short", False), "value": self._formatter.render_text(e["value"], process_markdown)}
-            for e in fields
-        ]
+
+        # Match any pixel value in the URL (e.g., "1200px-", "15px-", etc.)
+        match = re.search(r'(\d+)px-', url)
+        if match:
+            current_px = int(match.group(1))
+            # Find the closest standard size
+            closest_size = min(standard_sizes, key=lambda x: abs(x - current_px))
+
+            if closest_size != current_px:
+                url = url.replace(f"{current_px}px-", f"{closest_size}px-")
+                logging.info("Normalized wikimedia URL px value: %dpx → %dpx",
+                            current_px, closest_size)
+
+        return url
