@@ -100,33 +100,65 @@ class Message(object):
             text = self._message.get("text", "")
             if not text or text.strip() == "":
                 text = "[ MESSAGE TEXT EMPTY ]"
-
         return self._formatter.render_text(text)
-
 
     def _generate_blocks_text(self, blocks):
         """Build a message together from various message["blocks"]"""
+        # Pre-process blocks to nest lists that follow blockquotes
+        blocks = self._merge_blockquote_lists(blocks)
         text = ""
         for block in blocks:
-            if block["type"] in ["rich_text", "rich_text_quote"]:
+            if block["type"] == "image":
+                text += self._format_block_type(block, block["type"])
+            elif block["type"] in ["rich_text", "rich_text_quote"]:
                 for element in block["elements"]:
                     text += self._format_rich_text_element(element)
-
             elif "fields" in block:
                 for field in block["fields"]:
                     text += self._format_block_type(field, block["type"])
-
             elif "elements" in block:
                 for element in block["elements"]:
                     text += self._format_block_type(element, block["type"])
-
             elif "type" in block and block["type"] == "divider":
                 text += "---\n"
-
             else:
                 logging.warning(f"Unknown block type: {block}")
-
         return text
+
+    def _merge_blockquote_lists(self, blocks):
+        """
+        Slack's JSON structure doesn't semantically nest lists within quotes,
+        so this corrects that representation before formatting
+        Pre-process blocks to nest rich_text_list elements that immediately
+        follow rich_text_quote elements inside the quote's elements array.
+        """
+        merged = []
+        for block in blocks:
+            # If this is a rich_text block, merge quote+list within its elements
+            if block["type"] == "rich_text" and "elements" in block:
+                elements = block["elements"]
+                merged_elements = []
+                i = 0
+
+                while i < len(elements):
+                    element = elements[i]
+
+                    # Check if this is a quote and the next element is a list
+                    if (element["type"] == "rich_text_quote" and
+                        i + 1 < len(elements) and
+                        elements[i + 1]["type"] == "rich_text_list"):
+
+                        # Append the list to the quote's elements
+                        element["elements"].append(elements[i + 1])
+                        merged_elements.append(element)
+                        i += 2  # Skip both quote and list
+                    else:
+                        merged_elements.append(element)
+                        i += 1
+
+                block["elements"] = merged_elements
+            merged.append(block)
+        return merged
 
     def _format_rich_text_element(self, element):
         """Format rich text elements based on their type and styles"""
@@ -153,9 +185,26 @@ class Message(object):
             return text
 
         elif element["type"] == "link":
-            text = element.get('text', element['url']).replace("_", "&#95;")
-            return f"<a href='{element['url']}'>{text}</a>"
+            text = element.get('text', "")
+            url = element.get('url', '')
 
+            # Unescape forward slashes in the URL
+            # Slack's block kit JSON sometimes encodes forward slashes
+            # as ""\\/" (a valid JSON escape). Python'sjson module may
+            # leave these as literal backslash+slash depending on the serialiser,
+            # so this replacement normalises them before using the URL as display text.
+            url = url.replace("\\/", "/")
+
+            if not text:
+                text = url
+
+            # Escape underscores only in display text, not in URL
+            text = text.replace("_", "&#95;")
+
+            # Escape quotes in URL for safe href attribute
+            url = url.replace('"', "&quot;")
+
+            return f'<a href="{url}">{text}</a>'
 
         elif element["type"] == "user":
             user = self._formatter.find_user(self.user_message(element['user_id']))
@@ -168,11 +217,15 @@ class Message(object):
             list_text = ""
             if element["style"] == "bullet":
                 list_text += "<ul>"
-                list_text += "\n".join(f"<li>{self._format_rich_text_element(nested_element)}</li>" for nested_element in element["elements"])
+                for item in element["elements"]:
+                    item_content = ''.join(self._format_rich_text_element(nested) for nested in item.get("elements", []))
+                    list_text += f"<li>{item_content}</li>\n"
                 list_text += "</ul>\n"
             elif element["style"] == "ordered":
                 list_text += "<ol>"
-                list_text += "\n".join(f"<li>{self._format_rich_text_element(nested_element)}</li>" for nested_element in element["elements"])
+                for item in element["elements"]:
+                    item_content = ''.join(self._format_rich_text_element(nested) for nested in item.get("elements", []))
+                    list_text += f"<li>{item_content}</li>\n"
                 list_text += "</ol>\n"
             else:
                 logging.warning(f"Unsupported rich text list style '{element['style']}' for {element}")
@@ -203,9 +256,6 @@ class Message(object):
 
         logging.warning(f"Unsupported rich text element type '{element['type']}' for {element}")
         return ""
-
-
-
 
     def _format_block_type(self, text_obj, b_type):
         """Format the text based on the block type"""
@@ -258,30 +308,6 @@ class Message(object):
         else:
             logging.warning(f"Unsupported block type '{b_type}' for {text_obj}")
             return f"unsupported_block({b_type}: {text_obj}\n\n)"
-
-
-
-    def _generate_blocks_text(self, blocks):
-        """Build a message together from various message["blocks"]"""
-        text = ""
-        for block in blocks:
-            if block["type"] == "image":
-                text += self._format_block_type(block, block["type"])
-            elif block["type"] in ["rich_text", "rich_text_quote"]:
-                for element in block["elements"]:
-                    text += self._format_rich_text_element(element)
-            elif "fields" in block:
-                for field in block["fields"]:
-                    text += self._format_block_type(field, block["type"])
-            elif "elements" in block:
-                for element in block["elements"]:
-                    text += self._format_block_type(element, block["type"])
-            elif "type" in block and block["type"] == "divider":
-                text += "---\n"
-            else:
-                logging.warning(f"Unknown block type: {block}")
-        return text
-
 
 
     def user_message(self, user_id):
