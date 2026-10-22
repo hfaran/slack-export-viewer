@@ -279,149 +279,92 @@ class Reader(object):
         else:
             return False
 
-
     def _build_threads(self, channel_data):
         """
         Re-orders the JSON to allow for thread building.
+        Threads are identified by thread_ts and grouped under their parent message.
 
         :param [dict] channel_data: dictionary of all Slack channels and messages
-
         :return: None
         """
         for channel_name in channel_data.keys():
+            messages = channel_data[channel_name]
+
+            if not messages:
+                continue
+
             replies = {}
-            thread_ts_messages = {}  # Track messages with thread_ts
-            user_ts_lookup = {}
-            items_to_remove = []
-            for i, m in enumerate(channel_data[channel_name]):
-                user = m._message.get('user')
-                ts = m._message.get('ts')
+            ts_to_index = {}  # Map of ts -> message index for O(1) parent lookup
+            items_to_remove = set()
 
-                if user is None or ts is None:
-                    continue
+            # First pass: build ts_to_index map and identify thread replies
+            for i, msg in enumerate(messages):
+                ts = msg._message.get('ts')
+                thread_ts = msg._message.get('thread_ts')
 
-                k = (user, ts)
-                if k not in user_ts_lookup:
-                    user_ts_lookup[k] = []
-                user_ts_lookup[k].append((i, m))
+                # Track all messages by their ts for parent lookup
+                if ts:
+                    ts_to_index[ts] = i
 
+                # If message has a thread_ts that differs from its own ts, it's a reply
+                if thread_ts and thread_ts != ts:
+                    parent_index = ts_to_index.get(thread_ts)
 
-                # Track messages with thread_ts
-                thread_ts = m._message.get('thread_ts')
-                if thread_ts:
-                    thread_key = (user, thread_ts)
-                    if thread_key not in thread_ts_messages:
-                        thread_ts_messages[thread_key] = []
-                    thread_ts_messages[thread_key].append((i, m))
+                    if parent_index is not None:
+                        if parent_index not in replies:
+                            replies[parent_index] = []
+                        replies[parent_index].append((i, msg))
 
-
-            for location, message in enumerate(channel_data[channel_name]):
-                # remove "<user> joined/left <channel>" message
+            # Second pass: process main messages and their replies
+            for location, message in enumerate(messages):
+                # Remove channel join/leave messages if configured
                 if self._config.skip_channel_member_change and message._message.get('subtype') in ['channel_join', 'channel_leave']:
-                    items_to_remove.append(location)
+                    items_to_remove.add(location)
                     continue
 
-                #   If there's a "reply_count" key, generate a list of user and timestamp dictionaries
-                if 'reply_count' in message._message or 'replies' in message._message:
-                    #   Identify and save where we are
-                    reply_list = []
-                    for reply in message._message.get('replies', []):
-                        reply_list.append(reply)
-                    reply_objects = []
-                    for item in reply_list:
-                        item_lookup_key = (item.get('user'), item.get('ts'))
-                        item_replies = user_ts_lookup.get(item_lookup_key)
-                        if item_replies is not None:
-                            reply_objects.extend(item_replies)
+                # If this message has replies, process them
+                if location in replies:
+                    reply_list = replies[location]
 
-                    if not reply_objects:
-                        continue
+                    # Sort replies by their timestamp
+                    sorted_replies = sorted(reply_list, key=lambda tup: float(tup[1]._message['ts']))
 
-                    sorted_reply_objects = sorted(reply_objects, key=lambda tup: tup[0])
-                    for reply_obj_tuple in sorted_reply_objects:
-                        items_to_remove.append(reply_obj_tuple[0])
-                    replies[location] = [tup[1] for tup in sorted_reply_objects]
+                    # Mark replies for removal from top-level and add thread note
+                    for reply_index, reply_msg in sorted_replies:
+                        items_to_remove.add(reply_index)
 
-            # Process thread_ts messages that weren't included in replies
-            for thread_key, thread_messages in thread_ts_messages.items():
-                user, parent_ts = thread_key
-                parent_location = None
+                        msgtext = reply_msg._message.get("text", "")
+                        if self._config.thread_note and not reply_msg.is_thread_msg:
+                            reply_msg._message["text"] = f"**Thread Reply:** {msgtext}"
+                        reply_msg.is_thread_msg = True
 
-                # Find parent message location
-                for user, ts in user_ts_lookup:
-                    if ts == parent_ts:
-                        for idx, msg in user_ts_lookup[(user, ts)]:
-                            if msg._message.get('ts') == parent_ts:
-                                parent_location = idx
-                                break
-                        break
+                    # Store sorted replies under this parent
+                    replies[location] = [msg for _, msg in sorted_replies]
 
-                if parent_location is not None and parent_location in replies:
-                    # Only add messages that aren't already in the thread
-                    existing_ts = {msg._message.get('ts') for msg in replies[parent_location]}
-                    new_messages = [m for i, m in thread_messages if m._message.get('ts') not in existing_ts]
+            # Remove marked messages from top-level (in reverse order to preserve indices)
+            for idx in sorted(items_to_remove, reverse=True):
+                messages[idx] = {'user': -1}
 
-                    if new_messages:
-                        # Check if any message has a 'replies' array that defines order
-                        ordered_messages = []
-                        unordered_messages = []
-
-                        for msg in new_messages:
-                            if 'replies' in msg._message:
-                                # Get the order from the replies array
-                                reply_order = {reply['ts']: msg for reply in msg._message['replies']}
-                                # Sort messages according to the replies array order
-                                ordered_messages.extend(
-                                    sorted([m for m in new_messages if m._message.get('ts') in reply_order],
-                                        key=lambda m: list(reply_order.keys()).index(m._message.get('ts')))
-                                )
-                            else:
-                                unordered_messages.append(msg)
-
-                        # Sort unordered messages by timestamp
-                        unordered_messages_sorted = sorted(unordered_messages,
-                                                        key=lambda m: m.time if m.time else 0)
-
-                        # Combine ordered and sorted unordered messages
-                        final_sorted_messages = ordered_messages + unordered_messages_sorted
-
-                        replies[parent_location].extend(final_sorted_messages)
-                        # Mark these messages for removal from their original positions
-                        for i, m in thread_messages:
-                            if m in final_sorted_messages:
-                                items_to_remove.append(i)
-
-            # Create an OrderedDict of thread locations and replies in reverse numerical order
+            # Insert replies back into channel_data at correct positions
             sorted_threads = OrderedDict(sorted(replies.items(), reverse=True))
+            for parent_location, thread_replies in sorted_threads.items():
+                insert_location = parent_location + 1
+                for reply in thread_replies:
+                    messages.insert(insert_location, reply)
+                    insert_location += 1
 
-            for idx_to_remove in sorted(items_to_remove, reverse=True):
-                # threads location hotfix
-                channel_data[channel_name][idx_to_remove] = {'user': -1}
+            # Filter out placeholder objects created during removal
+            channel_data[channel_name] = [
+                item for item in messages
+                if isinstance(item, Message)
+            ]
 
-            # Iterate through the threads and insert them back into channel_data[channel_name] in response order
-            for grouping in sorted_threads.items():
-                location = grouping[0] + 1
-                for reply in grouping[1]:
-                    msgtext = reply._message.get("text")
-                    if not msgtext or not reply.is_thread_msg:
-                        # keep it mostly for backward compatibility
-                        if self._config.thread_note:
-                            reply._message["text"] = f"**Thread Reply:** {msgtext}"
-                        reply.is_thread_msg = True
-
-                    channel_data[channel_name].insert(location, reply)
-                    location += 1
-            # threads location hotfix
-            data_with_sorted_threads = []
-            for i, item in enumerate(channel_data[channel_name]):
-                if isinstance(item, Message):
-                    data_with_sorted_threads.append(item)
-            channel_data[channel_name] = data_with_sorted_threads.copy()
-
+        # Apply timeframe filtering if configured
         if self._since:
             channel_data = self._message_filter_timeframe(channel_data.copy())
 
         return channel_data
+
 
     def _read_from_json(self, file):
         """

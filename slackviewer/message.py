@@ -3,6 +3,8 @@ from __future__ import unicode_literals
 import datetime
 import logging
 import emoji
+import html
+import re
 
 
 class Message(object):
@@ -151,23 +153,26 @@ class Message(object):
             text = element.get('text', "")
             url = element.get('url', '')
 
-            # Unescape forward slashes in the URL
-            # Slack's block kit JSON sometimes encodes forward slashes
-            # as ""\\/" (a valid JSON escape). Python'sjson module may
-            # leave these as literal backslash+slash depending on the serialiser,
-            # so this replacement normalises them before using the URL as display text.
-            url = url.replace("\\/", "/")
-
             if not text:
                 text = url
+
+            # Escape HTML special characters in both text and URL
+            text = html.escape(text, quote=True)
+            url = html.escape(url, quote=True)
 
             # Escape underscores only in display text, not in URL
             text = text.replace("_", "&#95;")
 
-            # Escape quotes in URL for safe href attribute
-            url = url.replace('"', "&quot;")
+            # Escape asterisks in URL for safe href attribute
+            url = url.replace("*", "&#42;")
+
+            # Only allow safe URL schemes
+            if not re.match(r'^(https?|mailto):', url, re.IGNORECASE):
+                # Fallback to empty href if scheme is not allowed
+                url = ""
 
             return f'<a href="{url}">{text}</a>'
+
 
         elif element["type"] == "user":
             user = self._formatter.find_user(self.user_message(element['user_id']))
