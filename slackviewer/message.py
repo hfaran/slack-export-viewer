@@ -160,16 +160,14 @@ class Message(object):
             text = html.escape(text, quote=True)
             url = html.escape(url, quote=True)
 
-            # Escape underscores only in display text, not in URL
-            text = text.replace("_", "&#95;")
-
-            # Escape asterisks in URL for safe href attribute
+            # Escape markdown emphasis characters in the display text. render_text
+            # rewrites every '*' before markdown runs, so the URL needs it too
+            text = text.replace("_", "&#95;").replace("*", "&#42;")
             url = url.replace("*", "&#42;")
 
-            # Only allow safe URL schemes
+            # Only link safe URL schemes; show anything else as plain text
             if not re.match(r'^(https?|mailto):', url, re.IGNORECASE):
-                # Fallback to empty href if scheme is not allowed
-                url = ""
+                return text
 
             return f'<a href="{url}">{text}</a>'
 

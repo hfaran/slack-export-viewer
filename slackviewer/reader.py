@@ -307,7 +307,7 @@ class Reader(object):
                     ts_to_index[ts] = i
 
                 # If message has a thread_ts that differs from its own ts, it's a reply
-                if thread_ts and thread_ts != ts:
+                if ts and thread_ts and thread_ts != ts:
                     parent_index = ts_to_index.get(thread_ts)
 
                     if parent_index is not None:
@@ -320,6 +320,8 @@ class Reader(object):
                 # Remove channel join/leave messages if configured
                 if self._config.skip_channel_member_change and message._message.get('subtype') in ['channel_join', 'channel_leave']:
                     items_to_remove.add(location)
+                    # Any replies to the removed message stay top-level
+                    replies.pop(location, None)
                     continue
 
                 # If this message has replies, process them
@@ -364,7 +366,6 @@ class Reader(object):
             channel_data = self._message_filter_timeframe(channel_data.copy())
 
         return channel_data
-
 
     def _read_from_json(self, file):
         """

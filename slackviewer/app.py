@@ -68,7 +68,6 @@ def group_name_attachment(name, attachment):
 @app.route("/dm/<id>/")
 def dm_id(id):
     messages = app.dms.get(id, [])
-
     channels = list(app.channels.keys())
     groups = list(app.groups.keys())
     dm_users = list(app.dm_users)
