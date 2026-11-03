@@ -112,3 +112,16 @@ def test_link_label_is_escaped():
     html = render_link("https://ex.com/?a=1&b=2", "<img src=x onerror=alert(1)>")
     assert "<img" not in html
     assert 'href="https://ex.com/?a=1&amp;b=2"' in html
+
+
+def test_section_block_text_is_rendered():
+    blocks = [
+        {"type": "header", "text": {"type": "plain_text", "text": "Deploy report"}},
+        {"type": "section", "text": {"type": "mrkdwn", "text": "Build *passed*"},
+         "fields": [{"type": "mrkdwn", "text": "Branch: main"}]},
+    ]
+    html = make_message(ts=1, blocks=blocks).msg
+    assert "unsupported_block" not in html
+    assert "<strong>Deploy report</strong>" in html
+    assert "<strong>passed</strong>" in html
+    assert html.index("Build") < html.index("Branch: main")
