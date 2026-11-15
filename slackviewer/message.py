@@ -113,6 +113,10 @@ class Message(object):
             elif block["type"] in ["rich_text", "rich_text_quote"]:
                 for element in block["elements"]:
                     text += self._format_rich_text_element(element)
+            elif block["type"] in ["section", "header"] and "text" in block:
+                text += self._format_block_type(block["text"], block["type"])
+                for field in block.get("fields", []):
+                    text += self._format_block_type(field, block["type"])
             elif "fields" in block:
                 for field in block["fields"]:
                     text += self._format_block_type(field, block["type"])
