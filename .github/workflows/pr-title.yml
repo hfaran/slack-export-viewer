@@ -1,0 +1,35 @@
+name: PR title
+
+# Squash merges use the PR title as the commit subject, and scripts/release.py reads
+# those subjects when it picks the next version:
+#   feat: -> minor, fix:/perf: -> patch, any type with "!" (e.g. feat!:) -> major.
+
+on:
+  pull_request_target:
+    types: [opened, edited, reopened]
+
+permissions:
+  pull-requests: read
+
+jobs:
+  conventional:
+    name: Conventional Commit title
+    runs-on: ubuntu-latest
+    steps:
+      - uses: amannn/action-semantic-pull-request@48f256284bd46cdaab1048c3721360e808335d50 # v6.1.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          # Keep in sync with TYPE_LEVELS and OTHER_TYPES in scripts/release.py.
+          types: |
+            feat
+            fix
+            perf
+            build
+            chore
+            ci
+            docs
+            refactor
+            revert
+            style
+            test
