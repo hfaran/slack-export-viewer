@@ -63,6 +63,5 @@ see those), and `!` (e.g. `feat!:`) for changes that break existing usage or out
 5) `poetry install` to sync the environment
 6) `git clean -fdx dist` to remove any stale build artifacts
 7) `poetry build` to produce the sdist and wheel under `dist/`
-8) `twine upload dist/*` to push to PyPI
-   - Requires a PyPI API token — either set `TWINE_PASSWORD=<token>` and `TWINE_USERNAME=__token__` in your environment, or configure `~/.pypirc`
-   - Alternatively, `poetry publish` can replace this step if you have a token configured via `poetry config pypi-token.pypi <token>`
+8) `poetry publish` to push to PyPI
+   - Requires a PyPI API token configured via `poetry config pypi-token.pypi <token>`

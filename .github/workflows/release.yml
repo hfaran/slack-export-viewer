@@ -42,15 +42,15 @@ jobs:
         run: |
           echo "::error::Releases are cut from master, not ${GITHUB_REF}"
           exit 1
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
-      - uses: actions/setup-python@v7
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: "3.14"
       - name: Install dependencies
         run: |
-          pip install poetry
+          pip install poetry==2.5.1
           poetry install
       - name: Compute release plan
         id: plan
@@ -76,12 +76,12 @@ jobs:
       PREVIOUS: ${{ needs.plan.outputs.previous }}
       GH_TOKEN: ${{ github.token }}
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-python@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: "3.14"
       - name: Install Poetry
-        run: pip install poetry
+        run: pip install poetry==2.5.1
       - name: Bump version
         run: poetry version "$VERSION"
       - name: Write release notes and CHANGELOG.md
@@ -103,7 +103,7 @@ jobs:
         run: poetry build
       - name: Create GitHub release
         run: gh release create "$VERSION" --verify-tag --title "$VERSION" --notes-file "$RUNNER_TEMP/notes.md"
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: dist
           path: dist/
@@ -114,7 +114,7 @@ jobs:
     needs: release
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/download-artifact@v8
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: dist
           path: dist/
