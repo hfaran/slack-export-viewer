@@ -1,0 +1,31 @@
+# Weekly grouped updates. The commit-message settings give PR titles like
+# "build(deps): bump ..." so they pass the Conventional Commit PR title check.
+#
+# Python updates only touch poetry.lock, which doesn't ship, so they never
+# trigger a release. Raising a minimum in pyproject.toml (e.g. to exclude a
+# vulnerable version for users) stays a deliberate change, which scripts/release.py
+# counts as a patch.
+version: 2
+updates:
+  - package-ecosystem: pip # covers pyproject.toml and poetry.lock
+    directory: /
+    versioning-strategy: lockfile-only
+    schedule:
+      interval: weekly
+    groups:
+      python:
+        patterns: ["*"]
+    commit-message:
+      prefix: build
+      include: scope
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ["*"]
+    commit-message:
+      prefix: ci
+      include: scope
