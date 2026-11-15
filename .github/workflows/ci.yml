@@ -5,6 +5,8 @@ on:
     branches: [ master ]
   pull_request:
     branches: [ master ]
+  # release.yml runs the same tests before cutting a release.
+  workflow_call:
 
 jobs:
   build:

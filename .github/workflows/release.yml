@@ -1,0 +1,124 @@
+name: Release
+
+# Cuts a release from master: computes the next version with scripts/release.py,
+# bumps pyproject.toml, updates CHANGELOG.md, tags, creates the GitHub release and
+# publishes to PyPI. Run it from the Actions tab, `gh workflow run release.yml`,
+# or the /release Claude Code skill. See RELEASE.md.
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: Minimum bump (auto = computed from code changes and commit titles)
+        type: choice
+        options: [auto, patch, minor, major]
+        default: auto
+      expected_version:
+        description: Fail unless the computed version equals this (set by /release after its preview)
+        type: string
+        required: false
+      dry_run:
+        description: Only compute and show the plan
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      release: ${{ steps.plan.outputs.release }}
+      version: ${{ steps.plan.outputs.version }}
+      previous: ${{ steps.plan.outputs.previous }}
+    steps:
+      - name: Require master
+        if: github.ref != 'refs/heads/master'
+        run: |
+          echo "::error::Releases are cut from master, not ${GITHUB_REF}"
+          exit 1
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.14"
+      - name: Install dependencies
+        run: |
+          pip install poetry
+          poetry install
+      - name: Compute release plan
+        id: plan
+        env:
+          BUMP: ${{ inputs.bump }}
+          EXPECTED_VERSION: ${{ inputs.expected_version }}
+        run: >
+          poetry run python scripts/release.py plan
+          --bump "$BUMP" --expect-version "$EXPECTED_VERSION"
+          --summary "$GITHUB_STEP_SUMMARY" --github-output "$GITHUB_OUTPUT"
+
+  test:
+    uses: ./.github/workflows/ci.yml
+
+  release:
+    needs: [plan, test]
+    if: needs.plan.outputs.release == 'true' && !inputs.dry_run
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      VERSION: ${{ needs.plan.outputs.version }}
+      PREVIOUS: ${{ needs.plan.outputs.previous }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.14"
+      - name: Install Poetry
+        run: pip install poetry
+      - name: Bump version
+        run: poetry version "$VERSION"
+      - name: Write release notes and CHANGELOG.md
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/releases/generate-notes" \
+            -f tag_name="$VERSION" -f target_commitish="$GITHUB_SHA" -f previous_tag_name="$PREVIOUS" \
+            --jq .body > "$RUNNER_TEMP/notes.md"
+          python scripts/release.py changelog --version "$VERSION" --notes "$RUNNER_TEMP/notes.md"
+      - name: Commit, tag and push
+        # The push is rejected if master moved after this run started, before anything is published.
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add pyproject.toml CHANGELOG.md
+          git commit -m "Release $VERSION"
+          git tag "$VERSION"
+          git push --atomic origin "HEAD:refs/heads/master" "refs/tags/$VERSION"
+      - name: Build
+        run: poetry build
+      - name: Create GitHub release
+        run: gh release create "$VERSION" --verify-tag --title "$VERSION" --notes-file "$RUNNER_TEMP/notes.md"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: dist
+          path: dist/
+          if-no-files-found: error
+
+  publish:
+    # A release created with GITHUB_TOKEN does not trigger python-publish.yml, so publish here.
+    needs: release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: dist
+          path: dist/
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086 # v1.14.3
+        with:
+          password: ${{ secrets.PYPI_API_TOKEN }}
