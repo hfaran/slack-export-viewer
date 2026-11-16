@@ -68,9 +68,18 @@ the publishers in the PyPI project's Settings → Publishing first.
 
 #### Manual
 
+Publishing from your own machine needs a PyPI API token. Only the workflows can publish
+without one.
+
 4) `git pull` locally to get the tagged release commit
 5) `poetry install` to sync the environment
 6) `git clean -fdx dist` to remove any stale build artifacts
 7) `poetry build` to produce the sdist and wheel under `dist/`
-8) `poetry publish` to push to PyPI
-   - Requires a PyPI API token configured via `poetry config pypi-token.pypi <token>`
+8) Create an API token at https://pypi.org/manage/account/token/ with the scope
+   "Project: slack-export-viewer". Don't use an all-projects token.
+9) `poetry publish` to push to PyPI. Give it the token in one of two ways:
+   - Store it once with `poetry config pypi-token.pypi <token>`. Poetry keeps it in the
+     system keyring when one is available.
+   - Pass it for a single run: `POETRY_PYPI_TOKEN_PYPI=<token> poetry publish`
+
+   Delete the token on PyPI when you no longer need it.
