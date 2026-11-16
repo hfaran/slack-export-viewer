@@ -5,8 +5,10 @@ name: PR title
 #   feat: -> minor, fix:/perf: -> patch, any type with "!" (e.g. feat!:) -> major.
 
 on:
-  pull_request_target:
-    types: [opened, edited, reopened]
+  # pull_request, not pull_request_target: fork PRs get a read-only token, which is all
+  # this check needs. synchronize re-runs it on each push so the latest commit has it.
+  pull_request:
+    types: [opened, edited, reopened, synchronize]
 
 permissions:
   pull-requests: read
