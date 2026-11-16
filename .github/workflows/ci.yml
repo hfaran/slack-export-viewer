@@ -8,6 +8,9 @@ on:
   # release.yml runs the same tests before cutting a release.
   workflow_call:
 
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest

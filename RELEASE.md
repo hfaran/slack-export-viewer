@@ -43,7 +43,16 @@ see those), and `!` (e.g. `feat!:`) for changes that break existing usage or out
    commits "Release X.Y.Z", tags `X.Y.Z` and pushes both.
 3. Creates the GitHub release with GitHub's generated notes (edit them afterwards if
    you like; `CHANGELOG.md` keeps the generated copy).
-4. Builds with Poetry and publishes to PyPI using the `PYPI_API_TOKEN` secret.
+4. Builds with Poetry and publishes to PyPI.
+
+### PyPI credentials
+
+Both `release.yml` and `python-publish.yml` publish with
+[Trusted Publishing](https://docs.pypi.org/trusted-publishers/): PyPI accepts a
+short-lived OIDC token from those two workflow files when they run in this repo's
+`pypi` environment. No PyPI token is stored in GitHub. The environment only allows
+master and `X.Y.Z` tags. If either workflow file or the environment is renamed, update
+the publishers in the PyPI project's Settings → Publishing first.
 
 ## Manual
 

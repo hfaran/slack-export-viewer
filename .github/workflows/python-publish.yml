@@ -1,12 +1,8 @@
-# This workflow will upload a Python Package using Twine when a release is created
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python#publishing-to-package-registries
-
-# This workflow uses actions that are not certified by GitHub.
-# They are provided by a third-party and are governed by
-# separate terms of service, privacy policy, and support
-# documentation.
-
 name: Upload Python Package
+
+# Publishes to PyPI when a GitHub release is created by hand (the Manual section of
+# RELEASE.md). Releases made by release.yml are published by that workflow instead.
+# Uses PyPI Trusted Publishing from the pypi environment, so no PyPI token is stored.
 
 on:
   release:
@@ -16,23 +12,37 @@ permissions:
   contents: read
 
 jobs:
-  deploy:
-
+  build:
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
     - name: Set up Python
       uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
       with:
         python-version: '3.x'
-    - name: Install dependencies
-      run: |
-        pip install build==1.6.1
+    - name: Install build
+      run: pip install build==1.6.1
     - name: Build package
       run: python -m build
+    - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+      with:
+        name: dist
+        path: dist/
+        if-no-files-found: error
+
+  publish:
+    # Separate from build so the OIDC token is only available to the upload step.
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/slack-export-viewer
+    permissions:
+      id-token: write
+    steps:
+    - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+      with:
+        name: dist
+        path: dist/
     - name: Publish package
       uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086 # v1.14.3
-      with:
-        user: __token__
-        password: ${{ secrets.PYPI_API_TOKEN }}
