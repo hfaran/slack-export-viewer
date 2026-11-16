@@ -45,6 +45,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
+          persist-credentials: false
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: "3.14"
@@ -71,12 +72,15 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    # GH_TOKEN (which can push) is set only on the steps that call GitHub, and the
+    # checkout doesn't keep it, so the build and other steps never see it.
     env:
       VERSION: ${{ needs.plan.outputs.version }}
       PREVIOUS: ${{ needs.plan.outputs.previous }}
-      GH_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: "3.14"
@@ -85,6 +89,8 @@ jobs:
       - name: Bump version
         run: poetry version "$VERSION"
       - name: Write release notes and CHANGELOG.md
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           gh api "repos/$GITHUB_REPOSITORY/releases/generate-notes" \
             -f tag_name="$VERSION" -f target_commitish="$GITHUB_SHA" -f previous_tag_name="$PREVIOUS" \
@@ -92,16 +98,22 @@ jobs:
           python scripts/release.py changelog --version "$VERSION" --notes "$RUNNER_TEMP/notes.md"
       - name: Commit, tag and push
         # The push is rejected if master moved after this run started, before anything is published.
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add pyproject.toml CHANGELOG.md
           git commit -m "Release $VERSION"
           git tag "$VERSION"
-          git push --atomic origin "HEAD:refs/heads/master" "refs/tags/$VERSION"
+          # Credentials for this one command only, from GH_TOKEN via gh's git helper.
+          git -c credential.helper= -c 'credential.helper=!gh auth git-credential' \
+            push --atomic origin "HEAD:refs/heads/master" "refs/tags/$VERSION"
       - name: Build
         run: poetry build
       - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: gh release create "$VERSION" --verify-tag --title "$VERSION" --notes-file "$RUNNER_TEMP/notes.md"
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
